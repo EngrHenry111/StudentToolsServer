@@ -8,7 +8,7 @@ export const generateSitemap = async (req, res) => {
   const tutorials = await Tutorial.find();
 
   const sitemap = new SitemapStream({
-   hostname: "https://studenttoolsng.com"
+   hostname: "student-toolsngsch.vercel.app"
   });
 
   // Static pages

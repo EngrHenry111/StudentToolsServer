@@ -92,3 +92,28 @@ export const getTutorialBySlug = async (req, res) => {
   res.status(500).json({ message: error.message });
  }
 };
+
+
+export const getRelatedTutorials = async (req,res)=>{
+
+ try{
+
+  const { category, id } = req.query;
+
+  const tutorials = await Tutorial.find({
+   category,
+   _id: { $ne: id }
+  })
+  .limit(3);
+
+  res.json(tutorials);
+
+ }catch(error){
+
+  res.status(500).json({
+   message:error.message
+  });
+
+ }
+
+};
