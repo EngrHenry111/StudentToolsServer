@@ -24,8 +24,12 @@ const tutorialSchema = new mongoose.Schema({
 
  image:String,
 
- tags:[String]
-
+ tags:[String],
+ 
+views:{
+ type:Number,
+ default:0
+}
 },{timestamps:true});
 
 

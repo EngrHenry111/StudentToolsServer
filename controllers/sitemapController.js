@@ -20,6 +20,13 @@ export const generateSitemap = async (req, res) => {
    "/jamb-calculator",
    "/study-planner",
    "/scholarships",
+
+    "/cgpa-calculator-nigeria",
+    "/how-to-calculate-cgpa",
+    "/waec-grading-system",
+    "/jamb-score-calculator-nigeria",
+
+
    "/about",
    "/contact",
    "/privacy-policy",

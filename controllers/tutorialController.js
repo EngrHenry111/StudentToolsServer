@@ -79,20 +79,28 @@ export const searchTutorials = async (req, res) => {
 /*
 Get Tutorial By Slug
 */
-export const getTutorialBySlug = async (req, res) => {
- try {
-  const tutorial = await Tutorial.findOne({ slug: req.params.slug });
 
-  if (!tutorial) {
-   return res.status(404).json({ message: "Tutorial not found" });
-  }
+export const getTutorialBySlug = async (req,res)=>{
+
+ try{
+
+  const tutorial = await Tutorial.findOneAndUpdate(
+   { slug:req.params.slug },
+   { $inc:{ views:1 } },
+   { new:true }
+  );
 
   res.json(tutorial);
- } catch (error) {
-  res.status(500).json({ message: error.message });
- }
-};
 
+ }catch(error){
+
+  res.status(500).json({
+   message:error.message
+  });
+
+ }
+
+};
 
 export const getRelatedTutorials = async (req,res)=>{
 
@@ -105,6 +113,26 @@ export const getRelatedTutorials = async (req,res)=>{
    _id: { $ne: id }
   })
   .limit(3);
+
+  res.json(tutorials);
+
+ }catch(error){
+
+  res.status(500).json({
+   message:error.message
+  });
+
+ }
+
+};
+
+export const getTrendingTutorials = async (req,res)=>{
+
+ try{
+
+  const tutorials = await Tutorial.find()
+   .sort({views:-1})
+   .limit(4);
 
   res.json(tutorials);
 
