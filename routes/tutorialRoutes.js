@@ -13,8 +13,8 @@ router.post("/", createTutorial);
 router.get("/", getTutorials);
 
 router.get("/search", searchTutorials);
+
+router.get("/related", getRelatedTutorials);   // must be before slug
+
 router.get("/:slug", getTutorialBySlug);
-
-router.get("/related", getRelatedTutorials);
-
 export default router;
