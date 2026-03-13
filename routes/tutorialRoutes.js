@@ -5,7 +5,8 @@ import {
  searchTutorials,
  getTutorialBySlug, 
  getRelatedTutorials,
- getTrendingTutorials
+ getTrendingTutorials,
+ searchSuggestions
 } from "../controllers/tutorialController.js";
 
 const router = express.Router();
@@ -14,6 +15,8 @@ router.post("/", createTutorial);
 router.get("/", getTutorials);
 
 router.get("/search", searchTutorials);
+router.get("/suggest",searchSuggestions);
+
 
 router.get("/related", getRelatedTutorials);   // must be before slug
 

@@ -61,21 +61,63 @@ Get All Tutorials
 /*
 Search Tutorials
 */
-export const searchTutorials = async (req, res) => {
- try {
-  const keyword = req.query.q;
+export const searchTutorials = async (req,res)=>{
+
+ try{
+
+  const {q} = req.query;
 
   const tutorials = await Tutorial.find({
-   title: { $regex: keyword, $options: "i" }
-  });
+
+   $or:[
+    {title:{$regex:q,$options:"i"}},
+    {content:{$regex:q,$options:"i"}},
+    {category:{$regex:q,$options:"i"}}
+   ]
+
+  }).limit(10);
 
   res.json(tutorials);
- } catch (error) {
-  res.status(500).json({ message: error.message });
+
+ }catch(error){
+
+  res.status(500).json({
+   message:error.message
+  });
+
  }
+
 };
 
+export const searchSuggestions = async (req,res)=>{
 
+ try{
+
+  const {q} = req.query;
+
+  if(!q){
+   return res.json([]);
+  }
+
+  const tutorials = await Tutorial.find({
+
+   title:{$regex:q,$options:"i"}
+
+  })
+  .limit(5)
+  .select("title slug");
+
+  res.json(tutorials);
+
+ }catch(error){
+
+  res.status(500).json({
+   message:error.message
+  });
+
+ }
+
+};
 /*
 Get Tutorial By Slug
 */
