@@ -3,7 +3,7 @@ import { generateSitemap } from "../controllers/sitemapController.js";
 
 const router = express.Router();
 
-router.get("/sitemap", generateSitemap);
+router.get("/", generateSitemap);
 
 
 export default router;
