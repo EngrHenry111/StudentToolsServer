@@ -38,7 +38,7 @@ app.use("/api/ai", aiRoutes);
 
 app.use("/api/admin",adminRoutes);
 
-app.use("/", sitemapRoutes);
+app.use("/api/sitemap", sitemapRoutes);
 
 
 app.use(errorHandler);
