@@ -6,6 +6,21 @@ Create Tutorial (minimal working version)
 
 export const createTutorial = async (req, res) => {
  try {
+
+  // Normalize title
+  const cleanTitle = req.body.title.trim().toLowerCase();
+
+  // Check if tutorial already exists (by title)
+  const existing = await Tutorial.findOne({
+   title: { $regex: `^${cleanTitle}$`, $options: "i" }
+  });
+
+  if (existing) {
+   return res.status(400).json({
+    message: "Tutorial with this title already exists"
+   });
+  }
+
   const tutorial = await Tutorial.create({
    title: req.body.title,
    content: req.body.content,
@@ -14,11 +29,28 @@ export const createTutorial = async (req, res) => {
   });
 
   res.status(201).json(tutorial);
+
  } catch (error) {
   console.error("CREATE TUTORIAL ERROR:", error);
   res.status(500).json({ message: error.message });
  }
 };
+
+// export const createTutorial = async (req, res) => {
+//  try {
+//   const tutorial = await Tutorial.create({
+//    title: req.body.title,
+//    content: req.body.content,
+//    category: req.body.category,
+//    tags: req.body.tags || []
+//   });
+
+//   res.status(201).json(tutorial);
+//  } catch (error) {
+//   console.error("CREATE TUTORIAL ERROR:", error);
+//   res.status(500).json({ message: error.message });
+//  }
+// };
 
 
 /*
