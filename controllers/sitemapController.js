@@ -22,10 +22,10 @@ export const generateSitemap = async (req, res) => {
    { url: "/study-planner", priority: 0.7 },
    { url: "/scholarships", priority: 0.7 },
 
-   { url: "/cgpa-calculator-nigeria", priority: 0.7 },
-   { url: "/how-to-calculate-cgpa", priority: 0.7 },
-   { url: "/waec-grading-system", priority: 0.7 },
-   { url: "/jamb-score-calculator-nigeria", priority: 0.7 },
+//    { url: "/cgpa-calculator-nigeria", priority: 0.7 },
+//    { url: "/how-to-calculate-cgpa", priority: 0.7 },
+//    { url: "/waec-grading-system", priority: 0.7 },
+//    { url: "/jamb-score-calculator-nigeria", priority: 0.7 },
 
    { url: "/about", priority: 0.5 },
    { url: "/contact", priority: 0.5 },
