@@ -1,3 +1,4 @@
+import MathHistory from "../models/MathHistory.js";
 import { solveMathProblem } from "../services/index.js";
 
 export const solveMath = async (req, res, next) => {
@@ -28,19 +29,7 @@ export const solveMath = async (req, res, next) => {
     res.status(200).json(result);
 
   } catch (error) {
-    console.error("🔥 SERVER ERROR:", error); // 👈 VERY IMPORTANT
+    console.error("🔥 SERVER ERROR:", error);
     next(error);
   }
-};
-
-export const validateProblem = (problem) => {
-  if (!problem || typeof problem !== "string") {
-    return "Invalid input";
-  }
-
-  if (problem.length < 3) {
-    return "Input too short";
-  }
-
-  return null;
 };
