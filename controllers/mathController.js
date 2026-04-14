@@ -1,3 +1,5 @@
+import { solveMathProblem } from "../services/index.js";
+
 export const solveMath = async (req, res, next) => {
   try {
     const { problem } = req.body;
