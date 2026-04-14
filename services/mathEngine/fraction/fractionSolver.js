@@ -46,12 +46,7 @@ const solveFractions = (problem) => {
   }
 };
 
-try {
-  // logic
-} catch (error) {
-  console.error("Solver error:", error);
-  return { error: "Solver failed" };
-}
+
 
 export default solveFractions;
 

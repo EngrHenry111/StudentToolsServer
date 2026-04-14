@@ -1,5 +1,5 @@
-import { parseSetProblem } from "./setParser";
-import { formatResponse } from "../../formatter";
+import { parseSetProblem } from "./setParser.js";
+import { formatResponse } from "../../formatter.js";
 
 
 const solveSetTheory = (problem) => {
@@ -79,10 +79,4 @@ const solveSetTheory = (problem) => {
 };
 
 
-try {
-  // logic
-} catch (error) {
-  console.error("Solver error:", error);
-  return { error: "Solver failed" };
-}
 export default solveSetTheory;
