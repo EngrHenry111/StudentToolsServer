@@ -1,4 +1,4 @@
-export const generateAlgebraQuestion = () => {
+export const generateAlgebraQuestion = (difficulty = "easy") => {
   const x = Math.floor(Math.random() * 10) + 1;
   const a = Math.floor(Math.random() * 5) + 1;
   const b = Math.floor(Math.random() * 10);
@@ -9,6 +9,7 @@ export const generateAlgebraQuestion = () => {
     question: `${a}x + ${b} = ${result}`,
     answer: x,
     topic: "Algebra",
-    difficulty: "easy",
+    difficulty,
+    type: "linear",
   };
 };
