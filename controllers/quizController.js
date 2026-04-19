@@ -43,10 +43,40 @@ export const submitQuizAnswer = async (req, res) => {
   }
 };
 
-export const getLeaderboard = async (req, res) => {
-  const users = await QuizProgress.find()
-    .sort({ score: -1 })
-    .limit(10);
 
-  res.json(users);
+export const getLeaderboard = async (req, res) => {
+  try {
+    const leaders = await QuizProgress.aggregate([
+      {
+        $group: {
+          _id: "$username",
+          totalScore: { $sum: "$score" },
+          totalAttempts: { $sum: "$attempts" },
+          totalCorrect: { $sum: "$correct" },
+          streak: { $max: "$streak" },
+        },
+      },
+      {
+        $sort: { totalScore: -1 },
+      },
+      {
+        $limit: 10,
+      },
+    ]);
+
+    // 🔥 Format clean response
+    const formatted = leaders.map((u) => ({
+      username: u._id,
+      score: u.totalScore,
+      attempts: u.totalAttempts,
+      correct: u.totalCorrect,
+      streak: u.streak,
+    }));
+
+    res.json(formatted);
+
+  } catch (err) {
+    console.error("Leaderboard error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
 };
