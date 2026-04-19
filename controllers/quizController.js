@@ -52,19 +52,25 @@ export const submitQuizAnswer = async (req, res) => {
     await user.save();
 
     // 🔥 SOLUTION ENGINE (KEY FEATURE)
+    // 🔥 SOLUTION ENGINE (ALWAYS RUN)
     let solution = null;
 
-    if (!isCorrect && problem) {
+    if (problem) {
+      console.log("🧠 Solving problem:", problem);
+
       const solved = solveMathProblem(problem);
+
+      console.log("🧠 Solver result:", solved);
 
       if (!solved.error) {
         solution = {
-          steps: solved.steps,
+          steps: solved.steps || [],
           answer: solved.answer,
-          formula: solved.formula,
+          formula: solved.formula || "",
         };
       }
     }
+
 
     res.json({
       message: "Progress updated",
