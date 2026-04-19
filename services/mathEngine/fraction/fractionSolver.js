@@ -1,126 +1,131 @@
 import { parseFraction } from "./fractionParser.js";
 import { formatResponse } from "../../formatter.js";
 
-const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
 
-const solveFractions = (problem) => {
+// 🔥 Helper: GCD (for simplification)
+const gcd = (a, b) => {
+  return b === 0 ? a : gcd(b, a % b);
+};
+
+// 🔥 Simplify fraction
+const simplify = (num, den) => {
+  const divisor = gcd(num, den);
+  return {
+    num: num / divisor,
+    den: den / divisor,
+  };
+};
+
+const solveFraction = (problem) => {
   try {
     const parsed = parseFraction(problem);
 
     if (!parsed) {
-      return { error: "Invalid fraction format" };
+      return { error: "Unsupported fraction format" };
     }
 
-    let { n1, d1, op, n2, d2 } = parsed;
+    const { a, b, c, d, operator } = parsed;
 
-    let numerator, denominator, steps = [];
+    let steps = [];
+    let numerator, denominator;
 
-    if (op === "+") {
-      numerator = n1 * d2 + n2 * d1;
-      denominator = d1 * d2;
-    } else if (op === "-") {
-      numerator = n1 * d2 - n2 * d1;
-      denominator = d1 * d2;
-    } else if (op === "*") {
-      numerator = n1 * n2;
-      denominator = d1 * d2;
-    } else if (op === "/") {
-      numerator = n1 * d2;
-      denominator = d1 * n2;
-    } else {
-      return { error: "Unsupported operation" };
+    switch (operator) {
+
+      // ➕ ADDITION
+      case "+": {
+        const commonDen = b * d;
+
+        const num1 = a * d;
+        const num2 = c * b;
+
+        numerator = num1 + num2;
+        denominator = commonDen;
+
+        steps = [
+          `Find common denominator: ${b} × ${d} = ${commonDen}`,
+          `Convert fractions: ${a}/${b} = ${num1}/${commonDen}`,
+          `Convert fractions: ${c}/${d} = ${num2}/${commonDen}`,
+          `Add numerators: ${num1} + ${num2} = ${numerator}`,
+          `Result: ${numerator}/${denominator}`,
+        ];
+
+        break;
+      }
+
+      // ➖ SUBTRACTION
+      case "-": {
+        const commonDen = b * d;
+
+        const num1 = a * d;
+        const num2 = c * b;
+
+        numerator = num1 - num2;
+        denominator = commonDen;
+
+        steps = [
+          `Find common denominator: ${b} × ${d} = ${commonDen}`,
+          `Convert fractions: ${a}/${b} = ${num1}/${commonDen}`,
+          `Convert fractions: ${c}/${d} = ${num2}/${commonDen}`,
+          `Subtract numerators: ${num1} - ${num2} = ${numerator}`,
+          `Result: ${numerator}/${denominator}`,
+        ];
+
+        break;
+      }
+
+      // ✖️ MULTIPLICATION
+      case "*": {
+        numerator = a * c;
+        denominator = b * d;
+
+        steps = [
+          `Multiply numerators: ${a} × ${c} = ${numerator}`,
+          `Multiply denominators: ${b} × ${d} = ${denominator}`,
+          `Result: ${numerator}/${denominator}`,
+        ];
+
+        break;
+      }
+
+      // ➗ DIVISION
+      case "/": {
+        numerator = a * d;
+        denominator = b * c;
+
+        steps = [
+          `Invert second fraction: ${c}/${d} → ${d}/${c}`,
+          `Multiply: (${a} × ${d}) / (${b} × ${c})`,
+          `${a} × ${d} = ${numerator}`,
+          `${b} × ${c} = ${denominator}`,
+          `Result: ${numerator}/${denominator}`,
+        ];
+
+        break;
+      }
+
+      default:
+        return { error: "Unsupported operation" };
     }
 
-    const g = gcd(numerator, denominator);
+    // 🔥 SIMPLIFY RESULT
+    const simplified = simplify(numerator, denominator);
+
+    steps.push(
+      `Simplify: ${numerator}/${denominator} → ${simplified.num}/${simplified.den}`
+    );
 
     return formatResponse({
       topic: "Fractions",
-      formula: "Basic Fraction Operations",
-      steps: [`Result = ${numerator}/${denominator}`],
-      answer: `${numerator / g}/${denominator / g}`,
+      formula: "a/b ± c/d, a/b × c/d, a/b ÷ c/d",
+      steps,
+      answer: `${simplified.num}/${simplified.den}`,
+      relatedTopics: ["Ratio", "Percentage", "Algebra"],
     });
 
   } catch (error) {
-    console.error("Fraction error:", error);
-    return { error: "Fraction solver failed" };
+    console.error("Fraction Solver Error:", error);
+    return { error: "Solver failed" };
   }
 };
 
-
-
-export default solveFractions;
-
-
-
-// import { parseFraction } from "./fractionParser.js";
-// import { formatResponse } from "../../formatter.js";
-
-// const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
-
-// const simplify = (n, d) => {
-//   const g = gcd(n, d);
-//   return [n / g, d / g];
-// };
-
-// const solveFractions = (problem) => {
-//   const parsed = parseFraction(problem);
-
-//   if (!parsed) return { error: "Unsupported fraction format" };
-
-//   let { n1, d1, op, n2, d2 } = parsed;
-
-//   let numerator, denominator, steps = [];
-
-//   if (op === "+") {
-//     numerator = n1 * d2 + n2 * d1;
-//     denominator = d1 * d2;
-
-//     steps = [
-//       `Find common denominator: ${d1} × ${d2}`,
-//       `(${n1}×${d2}) + (${n2}×${d1}) = ${numerator}`,
-//       `Result = ${numerator}/${denominator}`,
-//     ];
-//   }
-
-//   if (op === "-") {
-//     numerator = n1 * d2 - n2 * d1;
-//     denominator = d1 * d2;
-
-//     steps = [
-//       `Find common denominator`,
-//       `(${n1}×${d2}) - (${n2}×${d1}) = ${numerator}`,
-//     ];
-//   }
-
-//   if (op === "*") {
-//     numerator = n1 * n2;
-//     denominator = d1 * d2;
-
-//     steps = [
-//       `Multiply numerators and denominators`,
-//       `${n1}×${n2} / ${d1}×${d2}`,
-//     ];
-//   }
-
-//   if (op === "/") {
-//     numerator = n1 * d2;
-//     denominator = d1 * n2;
-
-//     steps = [
-//       `Invert second fraction and multiply`,
-//       `${n1}/${d1} × ${d2}/${n2}`,
-//     ];
-//   }
-
-//   const [sn, sd] = simplify(numerator, denominator);
-
-//   return formatResponse({
-//     topic: "Fractions",
-//     formula: "Basic Fraction Operations",
-//     steps: [...steps, `Simplified = ${sn}/${sd}`],
-//     answer: `${sn}/${sd}`,
-//     relatedTopics: ["Decimals", "Ratio"],
-//   });
-// };
-
-// export default solveFractions;
+export default solveFraction;

@@ -1,27 +1,42 @@
-export const generatePercentageQuestion = (difficulty = "easy") => {
-  let percent, total;
+  const random = (min, max) =>
+  Math.floor(Math.random() * (max - min + 1)) + min;
+
+const generatePercentageQuestion = (difficulty) => {
+  let base, percent;
 
   if (difficulty === "easy") {
-    percent = Math.floor(Math.random() * 20) + 5;
-    total = Math.floor(Math.random() * 100) + 50;
+    base = random(50, 200);
+    percent = random(5, 30);
+  } else if (difficulty === "medium") {
+    base = random(100, 500);
+    percent = random(10, 60);
+  } else {
+    base = random(200, 1000);
+    percent = random(20, 90);
   }
 
-  if (difficulty === "medium") {
-    percent = Math.floor(Math.random() * 50) + 10;
-    total = Math.floor(Math.random() * 500) + 100;
-  }
+  const answer = (percent / 100) * base;
 
-  if (difficulty === "hard") {
-    percent = Math.floor(Math.random() * 80) + 10;
-    total = Math.floor(Math.random() * 1000) + 200;
-  }
-
-  const answer = Number(((percent / 100) * total).toFixed(2));
+  const steps = [
+    `Convert ${percent}% to ${percent}/100`,
+    `Multiply by ${base}`,
+    `${percent}/100 × ${base} = ${answer}`,
+  ];
 
   return {
-    question: `${percent}% of ${total}`,
+    question: `${percent}% of ${base}`,
     answer,
-    topic: "Percentage",
+    topic: "percentage",
     difficulty,
+    type: "number",
+
+    // 🔥 PRECOMPUTED SOLUTION
+    solution: {
+      formula: "Percentage = (part / 100) × total",
+      steps,
+      answer,
+    },
   };
 };
+
+export default generatePercentageQuestion;
