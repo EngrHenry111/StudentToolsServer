@@ -1,17 +1,37 @@
 import QuizProgress from "../models/QuizProgress.js";
 import { generateQuestion } from "../services/quetionFactory.js";
 
-export const getQuizQuestion = (req, res) => {
-  const { topic = "percentage", difficulty = "easy" } = req.query;
+// import { generateQuizQuestion } from "../services/quizEngine/index.js";
+import { solveMathProblem } from "../services/index.js"; // 🔥 reuse your solver
 
-  const question = generateQuestion(topic, difficulty);
+// 🎯 GET QUESTION (Adaptive)
+export const getQuizQuestion = async (req, res) => {
+  try {
+    const { topic = "percentage", username = "Guest" } = req.query;
 
-  res.json(question);
+    let user = await QuizProgress.findOne({ username, topic });
+
+    let difficulty = "easy";
+
+    if (user) {
+      if (user.streak >= 5) difficulty = "hard";
+      else if (user.streak >= 2) difficulty = "medium";
+    }
+
+    const question = generateQuestion(topic, difficulty);
+
+    res.json(question);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to get question" });
+  }
 };
+
 
 export const submitQuizAnswer = async (req, res) => {
   try {
-    const { username = "Guest", isCorrect, topic } = req.body;
+    const { username = "Guest", isCorrect, topic, problem } = req.body;
 
     let user = await QuizProgress.findOne({ username, topic });
 
@@ -31,18 +51,34 @@ export const submitQuizAnswer = async (req, res) => {
 
     await user.save();
 
+    // 🔥 SOLUTION ENGINE (KEY FEATURE)
+    let solution = null;
+
+    if (!isCorrect && problem) {
+      const solved = solveMathProblem(problem);
+
+      if (!solved.error) {
+        solution = {
+          steps: solved.steps,
+          answer: solved.answer,
+          formula: solved.formula,
+        };
+      }
+    }
+
     res.json({
       message: "Progress updated",
       score: user.score,
       streak: user.streak,
       attempts: user.attempts,
+      solution, // 🔥 NEW
     });
 
-  } catch (error) {
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Submit failed" });
   }
 };
-
 
 export const getLeaderboard = async (req, res) => {
   try {
