@@ -1,19 +1,24 @@
-export const parseFraction = (problem) => {
-  const text = problem.replace(/\s+/g, "");
+export const parseFraction = (input) => {
+  if (!input) return null;
 
-  // Example: 1/2 + 3/4
-  let match = text.match(/(\d+)\/(\d+)([+\-*/])(\d+)\/(\d+)/);
+  // 🔥 normalize input
+  input = input
+    .replace(/\s/g, "")
+    .replace(/×/g, "*")
+    .replace(/÷/g, "/");
 
-  if (match) {
-    return {
-      type: "operation",
-      n1: +match[1],
-      d1: +match[2],
-      op: match[3],
-      n2: +match[4],
-      d2: +match[5],
-    };
-  }
+  // 🔥 FIX: detect operator BEFORE replacing division
+  const match = input.match(
+    /^(\d+)\/(\d+)([\+\-\*\/])(\d+)\/(\d+)$/
+  );
 
-  return null;
+  if (!match) return null;
+
+  return {
+    a: Number(match[1]),
+    b: Number(match[2]),
+    operator: match[3],
+    c: Number(match[4]),
+    d: Number(match[5]),
+  };
 };
