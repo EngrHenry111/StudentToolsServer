@@ -15,6 +15,12 @@ import solveSimultaneous from "./mathEngine/simultaneous/simultaneousSolver.js";
 
 import solveMotion from "./mathEngine/motion/motionSolver.js";
 
+import solveGeometry from "./mathEngine/geometry/geometrySolver.js";
+import solveAge from "./mathEngine/age/ageSolver.js";
+import solveProfitLoss from "./mathEngine/profitLoss/profiltLossSolver.js";
+import solveMixture from "./mathEngine/mixture/mixtureSolver.js";
+import solvePhysics from "./mathEngine/physics/physicsSolver.js";
+
 
 
 
@@ -36,6 +42,13 @@ export const solveMathProblem = (problem) => {
       speed_distance: solveSpeed,
       indices: solveIndices,
       simultaneous: solveSimultaneous,
+
+
+      geometry: solveGeometry,
+      age: solveAge,
+      profitloss: solveProfitLoss,
+      mixture: solveMixture,
+      physics: solvePhysics,
     };
 
     // 🔥 STEP 1: Try specific solver

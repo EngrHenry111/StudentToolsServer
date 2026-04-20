@@ -37,6 +37,46 @@ const detectTopic = (problem) => {
     
   ) return "motion";
 
+  // 🔥 AREA & PERIMETER
+if (
+  text.includes("area") ||
+  text.includes("perimeter") ||
+  text.includes("rectangle") ||
+  text.includes("circle") ||
+  text.includes("triangle")
+) return "geometry";
+
+// 🔥 AGE PROBLEMS
+if (
+  text.includes("years old") ||
+  text.includes("age") ||
+  text.includes("younger") ||
+  text.includes("older")
+) return "age";
+
+// 🔥 PROFIT & LOSS
+if (
+  text.includes("profit") ||
+  text.includes("loss") ||
+  text.includes("cost price") ||
+  text.includes("selling price")
+) return "profitloss";
+
+// 🔥 MIXTURE
+if (
+  text.includes("mixture") ||
+  text.includes("concentration") ||
+  text.includes("solution")
+) return "mixture";
+
+// 🔥 PHYSICS
+if (
+  text.includes("force") ||
+  text.includes("mass") ||
+  text.includes("acceleration") ||
+  text.includes("velocity")
+) return "physics";
+
   // 🔹 3. FALLBACK
   return "general";
 };
