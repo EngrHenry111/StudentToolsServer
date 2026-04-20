@@ -8,6 +8,11 @@ import solveFractions from "./mathEngine/fraction/fractionSolver.js";
 import solveRatio from "./mathEngine/ratio/ratioSolver.js";
 import solveSI from "./mathEngine/simpleInterest/siSolver.js";
 
+import solveAverage from "./mathEngine/average/averageSolver.js";
+import solveSpeed from "./mathEngine/speed/speedSolver.js";
+import solveIndices from "./mathEngine/indices/indicesSolver.js";
+import solveSimultaneous from "./mathEngine/simultaneous/simultaneousSolver.js";
+
 
 
 
@@ -22,6 +27,12 @@ export const solveMathProblem = (problem) => {
       fractions: solveFractions,
       ratio: solveRatio,
       si: solveSI,
+
+        // 🔥 NEW
+      average: solveAverage,
+      speed_distance: solveSpeed,
+      indices: solveIndices,
+      simultaneous: solveSimultaneous,
     };
 
     // 🔥 STEP 1: Try specific solver
