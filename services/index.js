@@ -11,14 +11,7 @@ export const solveMathProblem = (problem) => {
   try {
     const topic = detectTopic(problem);
 
-    // const solvers = {
-    //   percentage: solvePercentage,
-    //   algebra: solveAlgebra,
-    //   set: solveSetTheory,
-    //   fractions: solveFractions,
-    //   ratio: solveRatio,
-    //   si: solveSI,
-    // };
+    
     const solvers = {
   percentage: solvePercentage,
   algebra: solveAlgebra,
