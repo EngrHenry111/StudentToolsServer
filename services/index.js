@@ -1,4 +1,5 @@
 import detectTopic from "./detector.js";
+import { evaluate } from "mathjs";
 
 import solvePercentage from "./mathEngine/percentage/percentageSolver.js";
 import solveAlgebra from "./mathEngine/algebra/algebraSolver.js";
@@ -7,40 +8,93 @@ import solveFractions from "./mathEngine/fraction/fractionSolver.js";
 import solveRatio from "./mathEngine/ratio/ratioSolver.js";
 import solveSI from "./mathEngine/simpleInterest/siSolver.js";
 
+
+
+
 export const solveMathProblem = (problem) => {
   try {
     const topic = detectTopic(problem);
 
-    
     const solvers = {
-  percentage: solvePercentage,
-  algebra: solveAlgebra,
-  set: solveSetTheory,
-  fraction: solveFractions, // ✅ FIXED
-  ratio: solveRatio,
-  si: solveSI,
-};
+      percentage: solvePercentage,
+      algebra: solveAlgebra,
+      set: solveSetTheory,
+      fractions: solveFractions,
+      ratio: solveRatio,
+      si: solveSI,
+    };
 
-    const solver = solvers[topic];
-
-    if (!solver) {
-      return { error: "Unsupported problem type" };
+    // 🔥 STEP 1: Try specific solver
+    if (solvers[topic]) {
+      const result = solvers[topic](problem);
+      if (!result.error) return result;
     }
 
-    const result = solver(problem);
+    // 🔥 STEP 2: FALLBACK → general math engine
+    try {
+      const clean = problem
+        .replace(/×/g, "*")
+        .replace(/÷/g, "/");
 
-    // 🔒 Ensure valid response
-    if (!result || typeof result !== "object") {
-      return { error: "Solver failed to return valid response" };
+      const answer = evaluate(clean);
+
+      return {
+        success: true,
+        topic: "General Math",
+        formula: "Expression Evaluation",
+        steps: [
+          `Rewrite expression: ${clean}`,
+          `Evaluate using math engine`,
+        ],
+        answer,
+        relatedTopics: ["Algebra", "Fractions"],
+      };
+
+    } catch (err) {
+      return { error: "Unsupported or invalid problem" };
     }
-
-    return result;
 
   } catch (error) {
     console.error("❌ Engine crash:", error);
     return { error: "Internal solver error" };
   }
 };
+
+
+// export const solveMathProblem = (problem) => {
+//   try {
+//     const topic = detectTopic(problem);
+
+    
+//     const solvers = {
+//   percentage: solvePercentage,
+//   algebra: solveAlgebra,
+//   set: solveSetTheory,
+//   fraction: solveFractions, // ✅ FIXED
+//   ratio: solveRatio,
+//   si: solveSI,
+// };
+
+//     const solver = solvers[topic];
+
+//     if (!solver) {
+//       return { error: "Unsupported problem type" };
+//     }
+
+//     const result = solver(problem);
+
+//     // 🔒 Ensure valid response
+//     if (!result || typeof result !== "object") {
+//       return { error: "Solver failed to return valid response" };
+//     }
+
+//     return result;
+
+//   } catch (error) {
+//     console.error("❌ Engine crash:", error);
+//     return { error: "Internal solver error" };
+//   }
+// };
 
 
 
