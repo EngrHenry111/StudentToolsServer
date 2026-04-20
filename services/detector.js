@@ -1,23 +1,43 @@
 const detectTopic = (problem) => {
-  problem = problem.toLowerCase();
+  const text = problem.toLowerCase();
 
-  if (problem.includes("%")) return "percentage";
-  if (problem.includes("x")) return "algebra";
-  if (problem.includes("ratio")) return "ratio";
-  if (problem.includes("interest") || problem.includes("p=")) return "si";
-  if (problem.includes("n(")) return "set";
-  if (problem.includes("/") || problem.includes("fraction")) return "fractions";
+  
+  // 🔹 1. STRICT PATTERNS (HIGH CONFIDENCE)
+  if (/\d+%/.test(text)) return "percentage";
+  if (/[0-9]*x/.test(text)) return "algebra";
+  if (/\d+\/\d+/.test(text)) return "fractions";
+  if (text.includes("ratio")) return "ratio";
+  if (text.includes("p=") || text.includes("interest")) return "si";
+  if (text.includes("n(")) return "set";
 
-  // 🔥 NEW: SPEED / DISTANCE / TIME
+  // 🔹 2. WORD-BASED DETECTION (NEW UPGRADE)
   if (
-    problem.includes("km/h") ||
-    problem.includes("speed") ||
-    problem.includes("distance") ||
-    problem.includes("time")
-  ) {
-    return "motion";
-  }
+    text.includes("increase") ||
+    text.includes("decrease") ||
+    text.includes("percent")
+  ) return "percentage";
 
+  if (
+    text.includes("solve for x") ||
+    text.includes("equation")
+  ) return "algebra";
+
+  if (
+    text.includes("share") ||
+    text.includes("divide in ratio")
+  ) return "ratio";
+
+  // 🔥 NEW: MOTION / PHYSICS
+  if (
+    text.includes("km/h") ||
+    text.includes("speed") ||
+    text.includes("distance") ||
+    text.includes("time") ||
+    text.includes("travels")
+    
+  ) return "motion";
+
+  // 🔹 3. FALLBACK
   return "general";
 };
 
