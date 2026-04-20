@@ -10,7 +10,7 @@ import { generateSetTheoryQuestion } from "../services/mathEngine/quiz/setQuiz.j
 import generateAverageQuestion from "../services/mathEngine/quiz/avarageQuiz.js";
 import generateSpeedQuestion from "../services/mathEngine/quiz/speedQuiz.js";
 import generateIndicesQuestion from "../services/mathEngine/quiz/indicesQuiz.js";
-import generateSimultaneousQuestion from "../services/mathEngine/quiz/simpleInterestQuiz.js";
+import generateSimultaneousQuestion from "../services/mathEngine/quiz/simultaneousQuiz.js";
 
 export const generateQuestion = (topic, difficulty) => {
   switch (topic) {
