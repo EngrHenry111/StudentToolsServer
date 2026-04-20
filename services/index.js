@@ -13,6 +13,8 @@ import solveSpeed from "./mathEngine/speed/speedSolver.js";
 import solveIndices from "./mathEngine/indices/indicesSolver.js";
 import solveSimultaneous from "./mathEngine/simultaneous/simultaneousSolver.js";
 
+import solveMotion from "./mathEngine/motion/motionSolver.js";
+
 
 
 
@@ -27,6 +29,7 @@ export const solveMathProblem = (problem) => {
       fractions: solveFractions,
       ratio: solveRatio,
       si: solveSI,
+      motion: solveMotion,
 
         // 🔥 NEW
       average: solveAverage,
