@@ -4,27 +4,27 @@ const solvePhysics = (problem) => {
   const text = problem.toLowerCase();
 
   // F = ma
-  const match = text.match(/mass (\d+).*acceleration (\d+)/);
+  const massMatch = text.match(/mass\s*(is)?\s*(\d+)/);
+const accelMatch = text.match(/acceleration\s*(is)?\s*(\d+)/);
 
-  if (match) {
-    const m = Number(match[1]);
-    const a = Number(match[2]);
+if (massMatch && accelMatch) {
+  const m = Number(massMatch[2]);
+  const a = Number(accelMatch[2]);
 
-    const force = m * a;
+  const force = m * a;
 
-    return formatResponse({
-      topic: "Physics",
-      formula: "F = m × a",
-      steps: [
-        `Mass = ${m}`,
-        `Acceleration = ${a}`,
-        `Force = ${m} × ${a} = ${force}`,
-      ],
-      answer: `${force} N`,
-    });
-  }
+  return formatResponse({
+    topic: "Physics",
+    formula: "F = m × a",
+    steps: [
+      `Mass = ${m}`,
+      `Acceleration = ${a}`,
+      `Force = ${m} × ${a} = ${force}`,
+    ],
+    answer: `${force} N`,
+  });
+}
 
-  return { error: "Unsupported physics problem" };
 };
 
 export default solvePhysics;
