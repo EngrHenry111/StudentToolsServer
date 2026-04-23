@@ -1,3 +1,4 @@
+import { hasWords } from "../utils/nlp.js";
 const detectTopic = (problem) => {
   const text = problem.toLowerCase();
 
@@ -28,6 +29,7 @@ const detectTopic = (problem) => {
   ) return "ratio";
 
   // 🔥 NEW: MOTION / PHYSICS
+
   if (
     text.includes("km/h") ||
     text.includes("speed") ||
@@ -38,30 +40,14 @@ const detectTopic = (problem) => {
   ) return "motion";
 
   // 🔥 AREA & PERIMETER
-if (
-  text.includes("area") ||
-  text.includes("perimeter") ||
-  text.includes("rectangle") ||
-  text.includes("circle") ||
-  text.includes("triangle")
-) return "geometry";
+
+if (hasWords(text, ["area", "perimeter", "rectangle", "circle", "triangle" ]))
+  return "geometry";
 
 // 🔥 AGE PROBLEMS
-// if (
-//   text.includes("years old") ||
-//   text.includes("age") ||
-//   text.includes("younger") ||
-//   text.includes("older")
-// ) return "age";
-if (
-  text.includes("age") ||
-  text.includes("older") ||
-  text.includes("younger") ||
-  text.includes("father") ||
-  text.includes("mother") ||
-  text.includes("son") ||
-  text.includes("daughter")
-) return "age";
+if (hasWords(text, ["age", "older", "younger", "mother", "son", "daughter"]))
+  return "age";
+
 
 // 🔥 PROFIT & LOSS
 if (
@@ -72,11 +58,13 @@ if (
 ) return "profitloss";
 
 // 🔥 MIXTURE
-if (
-  text.includes("mixture") ||
-  text.includes("mix") ||
-  text.includes("%") && text.includes("liters")
-) return "mixture";
+// if (
+//   text.includes("mixture") ||
+//   text.includes("mix") ||
+//   text.includes("%") && text.includes("liters")
+// ) return "mixture";
+if (hasWords(text, ["mix", "mixture", "%"]))
+  return "mixture";
 // if (
 //   text.includes("mixture") ||
 //   text.includes("concentration") ||
@@ -84,19 +72,20 @@ if (
 // ) return "mixture";
 
 // 🔥 PHYSICS
-if (
-  text.includes("force") ||
-  text.includes("mass") ||
-  text.includes("acceleration") ||
-  text.includes("velocity")
-) return "physics";
+// if (
+//   text.includes("force") ||
+//   text.includes("mass") ||
+//   text.includes("acceleration") ||
+//   text.includes("velocity")
+// ) return "physics";
+if (hasWords(text, ["force", "mass", "acceleration", "velocity"]))
+  return "physics";
+
 
 
 // 🔥 AVERAGE
-if (
-  text.includes("average") ||
-  text.includes("mean")
-) return "average";
+if (hasWords(text, ["average", "mean"]))
+  return "average";
 
 // 🔥 INDICES
 if (
@@ -111,8 +100,11 @@ if (
   text.includes("speed") ||
   text.includes("distance") ||
   text.includes("time") ||
-  text.includes("km/h")
+  text.includes()
 ) return "motion";
+
+if (hasWords(text, ["speed", "km", "time", "distance", "km/h"]))
+  return "speed";
 
   // 🔹 3. FALLBACK
   return "general";

@@ -1,29 +1,42 @@
+import { parseGeometry } from "../../mathEngine/geometry/geometryParser.js";
 import { formatResponse } from "../../formatter.js";
 
 const solveGeometry = (problem) => {
-  const text = problem.toLowerCase();
+  const parsed = parseGeometry(problem);
 
-  // Rectangle area
-  const rect = text.match(/length (\d+).*width (\d+)/);
+  if (!parsed) return { error: "Invalid geometry problem" };
 
-  if (rect && text.includes("area")) {
-    const l = Number(rect[1]);
-    const w = Number(rect[2]);
-    const area = l * w;
+  let steps = [];
+  let answer;
 
-    return formatResponse({
-      topic: "Geometry",
-      formula: "Area = Length × Width",
-      steps: [
-        `Length = ${l}, Width = ${w}`,
-        `Area = ${l} × ${w}`,
-        `= ${area}`,
-      ],
-      answer: area,
-    });
+  if (parsed.type === "area_rectangle") {
+    answer = parsed.length * parsed.width;
+
+    steps = [
+      `Formula: Area = Length × Width`,
+      `Length = ${parsed.length}`,
+      `Width = ${parsed.width}`,
+      `${parsed.length} × ${parsed.width} = ${answer}`,
+    ];
   }
 
-  return { error: "Unsupported geometry problem" };
+  if (parsed.type === "perimeter_rectangle") {
+    answer = 2 * (parsed.length + parsed.width);
+
+    steps = [
+      `Formula: Perimeter = 2(L + W)`,
+      `Length = ${parsed.length}`,
+      `Width = ${parsed.width}`,
+      `2(${parsed.length} + ${parsed.width}) = ${answer}`,
+    ];
+  }
+
+  return formatResponse({
+    topic: "Geometry",
+    formula: "Area / Perimeter",
+    steps,
+    answer,
+  });
 };
 
 export default solveGeometry;

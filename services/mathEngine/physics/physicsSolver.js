@@ -1,31 +1,33 @@
+import { parsePhysics } from "../../mathEngine/physics/physicsParser.js";
 import { formatResponse } from "../../formatter.js";
 
+
 const solvePhysics = (problem) => {
-  const text = problem.toLowerCase();
+  const parsed = parsePhysics(problem);
 
-  // 🔥 FORCE = MASS × ACCELERATION
-  const forceMatch = text.match(/mass.*?(\d+).*?acceleration.*?(\d+)/);
+  if (!parsed) return { error: "Invalid physics problem" };
 
-  if (forceMatch) {
-    const mass = Number(forceMatch[1]);
-    const acceleration = Number(forceMatch[2]);
-    const force = mass * acceleration;
+  let steps = [];
+  let answer;
 
-    return formatResponse({
-      topic: "Physics",
-      formula: "F = m × a",
-      steps: [
-        `Mass = ${mass}`,
-        `Acceleration = ${acceleration}`,
-        `Force = mass × acceleration`,
-        `F = ${mass} × ${acceleration} = ${force}`,
-      ],
-      answer: `${force} N`,
-      relatedTopics: ["Motion", "Energy"],
-    });
+  if (parsed.type === "force") {
+    answer = parsed.mass * parsed.acceleration;
+
+    steps = [
+      `Formula: F = m × a`,
+      `Mass (m) = ${parsed.mass}`,
+      `Acceleration (a) = ${parsed.acceleration}`,
+      `F = ${parsed.mass} × ${parsed.acceleration}`,
+      `F = ${answer} N`,
+    ];
   }
 
-  return { error: "Unsupported physics problem" };
+  return formatResponse({
+    topic: "Physics",
+    formula: "F = m × a",
+    steps,
+    answer,
+  });
 };
 
 export default solvePhysics;

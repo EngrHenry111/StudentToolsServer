@@ -1,30 +1,29 @@
+import { parseMixture } from "../../mathEngine/mixture/mixtureParser.js";
 import { formatResponse } from "../../formatter.js";
 
 const solveMixture = (problem) => {
-  const match = problem.match(/(\d+).*?(\d+)%.*?(\d+).*?(\d+)%/);
+  const parsed = parseMixture(problem);
 
-  if (!match) {
-    return { error: "Invalid mixture format" };
-  }
+  if (!parsed) return { error: "Invalid mixture problem" };
 
-  const v1 = Number(match[1]);
-  const p1 = Number(match[2]);
-  const v2 = Number(match[3]);
-  const p2 = Number(match[4]);
+  const totalVolume = parsed.v1 + parsed.v2;
+  const totalContent =
+    (parsed.v1 * parsed.c1 + parsed.v2 * parsed.c2) / 100;
 
-  const total = v1 + v2;
-  const concentration = (v1 * p1 + v2 * p2) / total;
+  const concentration = (totalContent / totalVolume) * 100;
 
-  return {
-    success: true,
+  return formatResponse({
     topic: "Mixture",
-    formula: "C = (v1p1 + v2p2) / total",
+    formula: "Final% = (Total Solute / Total Volume) × 100",
     steps: [
-      `Total = ${v1} + ${v2} = ${total}`,
-      `(${v1}×${p1} + ${v2}×${p2}) / ${total}`,
-      `= ${concentration}%`,
+      `Volume1 = ${parsed.v1}, Concentration1 = ${parsed.c1}%`,
+      `Volume2 = ${parsed.v2}, Concentration2 = ${parsed.c2}%`,
+      `Total Volume = ${totalVolume}`,
+      `Total Solute = (${parsed.v1}×${parsed.c1} + ${parsed.v2}×${parsed.c2}) / 100`,
+      `Final Concentration = ${concentration}%`,
     ],
     answer: `${concentration}%`,
-  };
+  });
 };
+
 export default solveMixture;

@@ -1,38 +1,42 @@
+import { parseSpeed } from "../../mathEngine/speed/speedParser.js";
 import { formatResponse } from "../../formatter.js";
 
-const solveMotion = (problem) => {
-  const text = problem.toLowerCase();
+const solveSpeed = (problem) => {
+  const parsed = parseSpeed(problem);
 
-  try {
-    // Extract numbers
-    const speedMatch = text.match(/(\d+)\s*km\/h/);
-    const timeMatch = text.match(/(\d+)\s*hours?/);
+  if (!parsed) return { error: "Invalid speed problem" };
 
-    if (speedMatch && timeMatch) {
-      const speed = Number(speedMatch[1]);
-      const time = Number(timeMatch[1]);
+  let steps = [];
+  let answer;
 
-      const distance = speed * time;
+  if (parsed.type === "speed") {
+    answer = parsed.distance / parsed.time;
 
-      return formatResponse({
-        topic: "Speed Distance Time",
-        formula: "Distance = Speed × Time",
-        steps: [
-          `Speed = ${speed} km/h`,
-          `Time = ${time} hours`,
-          `Distance = Speed × Time`,
-          `${speed} × ${time} = ${distance} km`,
-        ],
-        answer: `${distance} km`,
-        relatedTopics: ["Physics", "Algebra"],
-      });
-    }
-
-    return { error: "Unsupported motion problem format" };
-
-  } catch (err) {
-    return { error: "Motion solver failed" };
+    steps = [
+      `Formula: Speed = Distance / Time`,
+      `Distance = ${parsed.distance}`,
+      `Time = ${parsed.time}`,
+      `${parsed.distance} / ${parsed.time} = ${answer}`,
+    ];
   }
+
+  if (parsed.type === "distance") {
+    answer = parsed.speed * parsed.time;
+
+    steps = [
+      `Formula: Distance = Speed × Time`,
+      `Speed = ${parsed.speed}`,
+      `Time = ${parsed.time}`,
+      `${parsed.speed} × ${parsed.time} = ${answer}`,
+    ];
+  }
+
+  return formatResponse({
+    topic: "Speed",
+    formula: "Speed = Distance / Time",
+    steps,
+    answer,
+  });
 };
 
-export default solveMotion;
+export default solveSpeed;

@@ -1,26 +1,24 @@
+import { parseAge } from "../../mathEngine/age/ageParser.js";
 import { formatResponse } from "../../formatter.js";
 
 const solveAge = (problem) => {
-  const nums = problem.match(/\d+/g);
+  const parsed = parseAge(problem);
 
-  if (!nums || nums.length < 2) {
-    return { error: "Invalid age input" };
-  }
+  if (!parsed) return { error: "Invalid age problem" };
 
-  const [a, b] = nums.map(Number);
+  const diff = Math.abs(parsed.a - parsed.b);
 
-  const diff = Math.abs(a - b);
-
-  return {
-    success: true,
+  return formatResponse({
     topic: "Age Problem",
     formula: "Difference = Older - Younger",
     steps: [
-      `Difference = |${a} - ${b}|`,
-      `= ${diff}`,
+      `First age = ${parsed.a}`,
+      `Second age = ${parsed.b}`,
+      `Difference = ${parsed.a} - ${parsed.b}`,
+      `Difference = ${diff}`,
     ],
     answer: diff,
-  };
+  });
 };
 
 export default solveAge;
