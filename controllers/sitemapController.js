@@ -11,37 +11,39 @@ export const generateSitemap = async (req, res) => {
   });
 
   // Static pages (FIXED URLs)
-  const staticPages = [
-   { url: "/", priority: 1.0 },
-   { url: "/tutorials", priority: 0.9 },
-   { url: "/cgpa-calculator", priority: 0.9 },
-   { url: "/waec-grade-calculator", priority: 0.9 },
-   { url: "/jamb-score-calculator", priority: 0.9 },
-   { url: "/gpa-class-calculator", priority: 0.8 },
+const staticPages = [
+  { url: "/", changefreq: "daily", priority: 1.0 },
 
-   { url: "/study-planner", priority: 0.7 },
-   { url: "/scholarships", priority: 0.7 },
+  { url: "/tutorials", changefreq: "daily", priority: 0.9 },
 
-   { url: "/admission-prediction", priority: 0.7 },
-   { url: "/ai-tutor", priority: 0.7 },
-   { url: "/tutorials/math-calculator", priority: 0.7 },
-   { url: "/quiz", priority: 0.7 },
+  { url: "/cgpa-calculator", changefreq: "monthly", priority: 0.9 },
+  { url: "/waec-grade-calculator", changefreq: "monthly", priority: 0.9 },
+  { url: "/jamb-score-calculator", changefreq: "monthly", priority: 0.9 },
+  { url: "/gpa-class-calculator", changefreq: "monthly", priority: 0.8 },
 
-   { url: "/about", priority: 0.5 },
-   { url: "/contact", priority: 0.5 },
-   { url: "/privacy-policy", priority: 0.3 },
-   { url: "/terms", priority: 0.3 },
-   { url: "/author", priority: 0.5 }
-  ];
+  { url: "/study-planner", changefreq: "weekly", priority: 0.7 },
+  { url: "/scholarships", changefreq: "weekly", priority: 0.7 },
 
-  staticPages.forEach(page => {
-   smStream.write({
+  { url: "/admission-prediction", changefreq: "monthly", priority: 0.7 },
+  { url: "/ai-tutor", changefreq: "weekly", priority: 0.7 },
+  { url: "/tutorials/math-calculator", changefreq: "weekly", priority: 0.7 },
+  { url: "/quiz", changefreq: "weekly", priority: 0.7 },
+
+  { url: "/about", changefreq: "yearly", priority: 0.5 },
+  { url: "/contact", changefreq: "yearly", priority: 0.5 },
+  { url: "/privacy-policy", changefreq: "yearly", priority: 0.3 },
+  { url: "/terms", changefreq: "yearly", priority: 0.3 },
+  { url: "/author", changefreq: "yearly", priority: 0.5 }
+];
+
+  staticPages.forEach((page) => {
+  smStream.write({
     url: page.url,
-    changefreq: "weekly",
+    changefreq: page.changefreq,
     priority: page.priority,
     lastmod: new Date().toISOString()
-   });
   });
+});
 
   // Dynamic tutorials
   tutorials.forEach(tutorial => {
