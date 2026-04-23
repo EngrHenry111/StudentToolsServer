@@ -58,13 +58,13 @@ if (
 ) return "profitloss";
 
 // 🔥 MIXTURE
-// if (
-//   text.includes("mixture") ||
-//   text.includes("mix") ||
-//   text.includes("%") && text.includes("liters")
-// ) return "mixture";
-if (hasWords(text, ["mix", "mixture", "%"]))
+if (
+  text.includes("mix") ||
+  text.includes("mixture") ||
+  (text.includes("%") && text.includes("and"))
+) {
   return "mixture";
+}
 // if (
 //   text.includes("mixture") ||
 //   text.includes("concentration") ||
