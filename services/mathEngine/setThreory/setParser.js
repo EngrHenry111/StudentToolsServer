@@ -1,47 +1,34 @@
-export const parseSetProblem = (problem) => {
-  const text = problem.replace(/\s+/g, "");
+export const parseSetTheory = (problem) => {
+  const text = problem.toLowerCase().replace(/\s+/g, "");
 
-  // 🔹 2-set problem
-  let match = text.match(
-    /n\(A\)=(\d+),?n\(B\)=(\d+),?n\(A∩B\)=(\d+)/
-  );
+  let data = {};
 
-  if (match) {
-    return {
-      type: "two_sets",
-      A: parseFloat(match[1]),
-      B: parseFloat(match[2]),
-      intersection: parseFloat(match[3]),
-    };
+  // n(A)=20
+  const single = text.match(/n\(([a-z])\)=([0-9]+)/g);
+  if (single) {
+    single.forEach((item) => {
+      const [, set, value] = item.match(/n\(([a-z])\)=([0-9]+)/);
+      data[set] = Number(value);
+    });
   }
 
-  // 🔹 3-set problem
-  match = text.match(
-    /n\(A\)=(\d+),?n\(B\)=(\d+),?n\(C\)=(\d+),?n\(A∩B\)=(\d+),?n\(A∩C\)=(\d+),?n\(B∩C\)=(\d+),?n\(A∩B∩C\)=(\d+)/
-  );
-
-  if (match) {
-    return {
-      type: "three_sets",
-      A: parseFloat(match[1]),
-      B: parseFloat(match[2]),
-      C: parseFloat(match[3]),
-      AB: parseFloat(match[4]),
-      AC: parseFloat(match[5]),
-      BC: parseFloat(match[6]),
-      ABC: parseFloat(match[7]),
-    };
+  // n(A∩B)=5
+  const intersection = text.match(/n\(([a-z])∩([a-z])\)=([0-9]+)/);
+  if (intersection) {
+    data.intersection = Number(intersection[3]);
   }
 
-  // 🔹 Complement: n(U)=100, n(A)=40
-  match = text.match(/n\(U\)=(\d+),?n\(A\)=(\d+)/);
-  if (match) {
-    return {
-      type: "complement",
-      U: parseFloat(match[1]),
-      A: parseFloat(match[2]),
-    };
+  // n(U)=100
+  const universal = text.match(/n\(u\)=([0-9]+)/);
+  if (universal) {
+    data.universal = Number(universal[1]);
   }
 
-  return null;
+  // Triple intersection
+  const triple = text.match(/n\(([a-z])∩([a-z])∩([a-z])\)=([0-9]+)/);
+  if (triple) {
+    data.triple = Number(triple[4]);
+  }
+
+  return Object.keys(data).length ? data : null;
 };
