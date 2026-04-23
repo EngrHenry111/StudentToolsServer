@@ -1,28 +1,31 @@
 import { formatResponse } from "../../formatter.js";
 
 const solvePhysics = (problem) => {
-  const m = problem.match(/mass.*?(\d+)/);
-  const a = problem.match(/acceleration.*?(\d+)/);
+  const text = problem.toLowerCase();
 
-  if (!m || !a) {
-    return { error: "Missing values" };
+  // 🔥 FORCE = MASS × ACCELERATION
+  const forceMatch = text.match(/mass.*?(\d+).*?acceleration.*?(\d+)/);
+
+  if (forceMatch) {
+    const mass = Number(forceMatch[1]);
+    const acceleration = Number(forceMatch[2]);
+    const force = mass * acceleration;
+
+    return formatResponse({
+      topic: "Physics",
+      formula: "F = m × a",
+      steps: [
+        `Mass = ${mass}`,
+        `Acceleration = ${acceleration}`,
+        `Force = mass × acceleration`,
+        `F = ${mass} × ${acceleration} = ${force}`,
+      ],
+      answer: `${force} N`,
+      relatedTopics: ["Motion", "Energy"],
+    });
   }
 
-  const mass = Number(m[1]);
-  const acc = Number(a[1]);
-
-  const force = mass * acc;
-
-  return {
-    success: true,
-    topic: "Physics",
-    formula: "F = m × a",
-    steps: [
-      `F = ${mass} × ${acc}`,
-      `F = ${force}`,
-    ],
-    answer: `${force} N`,
-  };
+  return { error: "Unsupported physics problem" };
 };
 
 export default solvePhysics;
