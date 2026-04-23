@@ -1,29 +1,26 @@
 import { formatResponse } from "../../formatter.js";
 
 const solveAge = (problem) => {
-  const text = problem.toLowerCase();
+  const nums = problem.match(/\d+/g);
 
-  // Example: "John is 5 years older than Mary, Mary is 10"
-  const match = text.match(/(\d+).*older.*(\d+)/);
-
-  if (match) {
-    const diff = Number(match[1]);
-    const base = Number(match[2]);
-    const result = base + diff;
-
-    return formatResponse({
-      topic: "Age Problem",
-      formula: "Older = Younger + Difference",
-      steps: [
-        `Difference = ${diff}`,
-        `Base age = ${base}`,
-        `${base} + ${diff} = ${result}`,
-      ],
-      answer: result,
-    });
+  if (!nums || nums.length < 2) {
+    return { error: "Invalid age input" };
   }
 
-  return { error: "Unsupported age problem" };
+  const [a, b] = nums.map(Number);
+
+  const diff = Math.abs(a - b);
+
+  return {
+    success: true,
+    topic: "Age Problem",
+    formula: "Difference = Older - Younger",
+    steps: [
+      `Difference = |${a} - ${b}|`,
+      `= ${diff}`,
+    ],
+    answer: diff,
+  };
 };
 
 export default solveAge;

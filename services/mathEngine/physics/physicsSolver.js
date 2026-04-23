@@ -1,30 +1,28 @@
 import { formatResponse } from "../../formatter.js";
 
 const solvePhysics = (problem) => {
-  const text = problem.toLowerCase();
+  const m = problem.match(/mass.*?(\d+)/);
+  const a = problem.match(/acceleration.*?(\d+)/);
 
-  // F = ma
-  const massMatch = text.match(/mass\s*(is)?\s*(\d+)/);
-const accelMatch = text.match(/acceleration\s*(is)?\s*(\d+)/);
+  if (!m || !a) {
+    return { error: "Missing values" };
+  }
 
-if (massMatch && accelMatch) {
-  const m = Number(massMatch[2]);
-  const a = Number(accelMatch[2]);
+  const mass = Number(m[1]);
+  const acc = Number(a[1]);
 
-  const force = m * a;
+  const force = mass * acc;
 
-  return formatResponse({
+  return {
+    success: true,
     topic: "Physics",
     formula: "F = m × a",
     steps: [
-      `Mass = ${m}`,
-      `Acceleration = ${a}`,
-      `Force = ${m} × ${a} = ${force}`,
+      `F = ${mass} × ${acc}`,
+      `F = ${force}`,
     ],
     answer: `${force} N`,
-  });
-}
-
+  };
 };
 
 export default solvePhysics;

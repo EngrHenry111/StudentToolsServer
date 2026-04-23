@@ -1,30 +1,30 @@
 import { formatResponse } from "../../formatter.js";
 
 const solveMixture = (problem) => {
-  const text = problem.toLowerCase();
+  const match = problem.match(/(\d+).*?(\d+)%.*?(\d+).*?(\d+)%/);
 
-  const match = text.match(/(\d+)%.*?(\d+).*?(\d+)%.*?(\d+)/);
-
-  if (match) {
-    const c1 = Number(match[1]);
-    const v1 = Number(match[2]);
-    const c2 = Number(match[3]);
-    const v2 = Number(match[4]);
-
-    const result = (c1 * v1 + c2 * v2) / (v1 + v2);
-
-    return formatResponse({
-      topic: "Mixture",
-      formula: "Final = (c1v1 + c2v2)/(v1+v2)",
-      steps: [
-        `(${c1}×${v1} + ${c2}×${v2}) / (${v1}+${v2})`,
-        `= ${result}%`,
-      ],
-      answer: `${result}%`,
-    });
+  if (!match) {
+    return { error: "Invalid mixture format" };
   }
 
-  return { error: "Unsupported mixture problem" };
-};
+  const v1 = Number(match[1]);
+  const p1 = Number(match[2]);
+  const v2 = Number(match[3]);
+  const p2 = Number(match[4]);
 
+  const total = v1 + v2;
+  const concentration = (v1 * p1 + v2 * p2) / total;
+
+  return {
+    success: true,
+    topic: "Mixture",
+    formula: "C = (v1p1 + v2p2) / total",
+    steps: [
+      `Total = ${v1} + ${v2} = ${total}`,
+      `(${v1}×${p1} + ${v2}×${p2}) / ${total}`,
+      `= ${concentration}%`,
+    ],
+    answer: `${concentration}%`,
+  };
+};
 export default solveMixture;

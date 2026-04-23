@@ -29,6 +29,7 @@ export const solveMathProblem = (problem) => {
     const topic = detectTopic(problem);
 
     const solvers = {
+
       percentage: solvePercentage,
       algebra: solveAlgebra,
       set: solveSetTheory,
@@ -43,7 +44,6 @@ export const solveMathProblem = (problem) => {
       indices: solveIndices,
       simultaneous: solveSimultaneous,
 
-
       geometry: solveGeometry,
       age: solveAge,
       profitloss: solveProfitLoss,
@@ -53,35 +53,37 @@ export const solveMathProblem = (problem) => {
 
     // 🔥 STEP 1: Try specific solver
     if (solvers[topic]) {
+
+      console.log("📥 Problem:", problem);
+      console.log("🎯 Detected topic:", topic);
+
       const result = solvers[topic](problem);
       if (!result.error) return result;
     }
 
     // 🔥 STEP 2: FALLBACK → general math engine
     try {
-      const clean = problem
-        .replace(/×/g, "*")
-        .replace(/÷/g, "/");
+  const clean = problem
+    .replace(/×/g, "*")
+    .replace(/÷/g, "/");
 
-      const answer = evaluate(clean);
+  const answer = eval(clean);
 
-      return {
-        success: true,
-        topic: "General Math",
-        formula: "Expression Evaluation",
-        steps: [
-          `Rewrite expression: ${clean}`,
-          `Evaluate using math engine`,
-        ],
-        answer,
-        relatedTopics: ["Algebra", "Fractions"],
-      };
-
-    } catch (err) {
-      return { error: "Unsupported or invalid problem" };
-    }
+  return {
+    success: true,
+    topic: "General Math",
+    steps: [`Evaluated: ${clean}`],
+    answer,
+  };
+} catch {
+  return {
+    success: false,
+    message: "Unsupported or unclear problem",
+  };
+}
 
   } catch (error) {
+
     console.error("❌ Engine crash:", error);
     return { error: "Internal solver error" };
   }
