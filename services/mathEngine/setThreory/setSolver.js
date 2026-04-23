@@ -1,16 +1,24 @@
-import { parseSetProblem } from "../../mathEngine/setThreory/setParser.js";
+import { parseSetTheory } from "../../mathEngine/setThreory/setParser.js";
 import { formatResponse } from "../../formatter.js";
 
 const solveSetTheory = (problem) => {
+  console.log("📥 Set problem:", problem);
+
   const parsed = parseSetTheory(problem);
+
+  console.log("🧠 Parsed:", parsed);
 
   if (!parsed) return { error: "Invalid set input" };
 
   let steps = [];
   let answer = 0;
 
-  // 🔹 2 SETS
-  if (parsed.a && parsed.b && parsed.intersection) {
+  // 🔹 UNION
+  if (
+    parsed.a !== undefined &&
+    parsed.b !== undefined &&
+    parsed.intersection !== undefined
+  ) {
     answer = parsed.a + parsed.b - parsed.intersection;
 
     steps = [
@@ -21,11 +29,14 @@ const solveSetTheory = (problem) => {
   }
 
   // 🔹 COMPLEMENT
-  else if (parsed.universal && parsed.a) {
+  else if (
+    parsed.universal !== undefined &&
+    parsed.a !== undefined
+  ) {
     answer = parsed.universal - parsed.a;
 
     steps = [
-      "Use complement formula: n(A') = n(U) - n(A)",
+      "Use complement: n(A') = n(U) - n(A)",
       `${parsed.universal} - ${parsed.a}`,
       `Answer = ${answer}`,
     ];

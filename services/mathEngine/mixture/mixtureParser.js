@@ -1,4 +1,4 @@
-import { normalizeText, extractNumbers } from "../../utils/nlp.js";
+import { normalizeText, extractNumbers } from "../../../utils/nlp.js";
 
 export const parseMixture = (problem) => {
   const text = normalizeText(problem);
