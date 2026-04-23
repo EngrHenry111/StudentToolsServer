@@ -13,3 +13,12 @@ export const extractNumbers = (text) => {
 export const contains = (text, keywords = []) => {
   return keywords.some((word) => text.includes(word));
 };
+
+
+// ADD THIS FILE
+
+// export const getToday = ()=>{
+
+//  return new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+
+// };

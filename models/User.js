@@ -16,7 +16,25 @@ const userSchema = new mongoose.Schema({
  password:{
   type:String,
   required:true
- }
+ },
+
+ // MODIFY THIS PART IN models/User.js
+
+plan:{
+ type:String,
+ enum:["free","pro"],
+ default:"free"
+},
+
+subscriptionStatus:{
+ type:String,
+ enum:["active","inactive"],
+ default:"inactive"
+},
+
+subscriptionExpiry:{
+ type:Date
+},
 
 },{timestamps:true});
 

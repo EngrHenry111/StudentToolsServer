@@ -47,11 +47,20 @@ if (
 ) return "geometry";
 
 // 🔥 AGE PROBLEMS
+// if (
+//   text.includes("years old") ||
+//   text.includes("age") ||
+//   text.includes("younger") ||
+//   text.includes("older")
+// ) return "age";
 if (
-  text.includes("years old") ||
   text.includes("age") ||
+  text.includes("older") ||
   text.includes("younger") ||
-  text.includes("older")
+  text.includes("father") ||
+  text.includes("mother") ||
+  text.includes("son") ||
+  text.includes("daughter")
 ) return "age";
 
 // 🔥 PROFIT & LOSS
@@ -65,9 +74,14 @@ if (
 // 🔥 MIXTURE
 if (
   text.includes("mixture") ||
-  text.includes("concentration") ||
-  text.includes("solution")
+  text.includes("mix") ||
+  text.includes("%") && text.includes("liters")
 ) return "mixture";
+// if (
+//   text.includes("mixture") ||
+//   text.includes("concentration") ||
+//   text.includes("solution")
+// ) return "mixture";
 
 // 🔥 PHYSICS
 if (
@@ -76,6 +90,29 @@ if (
   text.includes("acceleration") ||
   text.includes("velocity")
 ) return "physics";
+
+
+// 🔥 AVERAGE
+if (
+  text.includes("average") ||
+  text.includes("mean")
+) return "average";
+
+// 🔥 INDICES
+if (
+  text.includes("^") ||
+  text.includes("power") ||
+  text.includes("index") ||
+  text.includes("indices")
+) return "indices";
+
+// 🔥 SPEED (alias of motion)
+if (
+  text.includes("speed") ||
+  text.includes("distance") ||
+  text.includes("time") ||
+  text.includes("km/h")
+) return "motion";
 
   // 🔹 3. FALLBACK
   return "general";
