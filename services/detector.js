@@ -72,14 +72,18 @@ if (
 // ) return "mixture";
 
 // 🔥 PHYSICS
-// if (
-//   text.includes("force") ||
-//   text.includes("mass") ||
-//   text.includes("acceleration") ||
-//   text.includes("velocity")
-// ) return "physics";
-if (hasWords(text, ["force", "mass", "acceleration", "velocity"]))
-  return "physics";
+if (
+  text.includes("force") ||
+  text.includes("mass") ||
+  text.includes("acceleration") ||
+  text.includes("m=") ||
+  text.includes("a=")
+
+  
+) return "physics";
+
+// if (hasWords(text, ["force", "mass", "acceleration", "velocity"]))
+//   return "physics";
 
 
 
