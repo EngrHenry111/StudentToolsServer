@@ -1,6 +1,6 @@
 import express from "express";
 import { getQuizQuestion, submitQuizAnswer,
-  getLeaderboard } from "../controllers/quizController.js";
+  getLeaderboard, getAIQuiz } from "../controllers/quizController.js";
 
 const router = express.Router();
 
@@ -10,6 +10,8 @@ router.post("/submit", submitQuizAnswer);
 
 // 🔥 ADD THIS
 router.get("/leaderboard", getLeaderboard);
+
+router.get("/ai-quiz", getAIQuiz);
 
 
 export default router;
