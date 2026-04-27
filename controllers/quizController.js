@@ -231,7 +231,64 @@ export const getUserAnalytics = async (req, res) => {
 };
 
 
+export const getLeaderboardXP = async (req, res) => {
+  try {
+    const leaders = await QuizProgress.aggregate([
+      {
+        $group: {
+          _id: "$username",
+          totalXP: { $max: "$xp" },
+          level: { $max: "$level" },
+          streak: { $max: "$streak" },
+          totalScore: { $sum: "$score" },
+          totalAttempts: { $sum: "$attempts" },
+          totalCorrect: { $sum: "$correct" }
+        }
+      },
+      {
+        $addFields: {
+          accuracy: {
+            $cond: [
+              { $eq: ["$totalAttempts", 0] },
+              0,
+              {
+                $multiply: [
+                  { $divide: ["$totalCorrect", "$totalAttempts"] },
+                  100
+                ]
+              }
+            ]
+          }
+        }
+      },
+      {
+        $sort: {
+          totalXP: -1,
+          level: -1,
+          streak: -1
+        }
+      },
+      {
+        $limit: 20
+      }
+    ]);
 
+    const formatted = leaders.map((u, index) => ({
+      rank: index + 1,
+      username: u._id,
+      xp: u.totalXP,
+      level: u.level,
+      streak: u.streak,
+      accuracy: Number(u.accuracy.toFixed(1))
+    }));
+
+    res.json(formatted);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Leaderboard error" });
+  }
+};
 
 
 // 🎯 GET QUESTION (Adaptive)

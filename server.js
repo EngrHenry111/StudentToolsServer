@@ -13,6 +13,8 @@ import adminRoutes from "./routes/adminRoutes.js";
 import sitemapRoutes from "./routes/sitemapRoutes.js";
 import mathRoutes from "./routes/mathRoutes.js";
 import quizRoutes from "./routes/quizRoutes.js";
+import authRoutes from "./routes/aiRoutes.js";
+
 
 
 
@@ -47,6 +49,7 @@ app.use("/api/quiz", quizRoutes);
 
 app.use("/api/sitemap", sitemapRoutes);
 
+app.use("/api/auth", authRoutes);
 
 app.use(errorHandler);
 

@@ -7,6 +7,12 @@ import { getQuizQuestion, submitQuizAnswer,
 
 const router = express.Router();
 
+import authUser from "../middleware/authUser.js";
+
+// protect routes
+router.get("/adaptive", authUser, getAdaptiveQuiz);
+router.post("/ai-quiz/submit", authUser, submitAIQuiz);
+router.get("/leaderboard-xp", authUser, getLeaderboardXP);
 router.get("/question", getQuizQuestion);
 
 router.post("/submit", submitQuizAnswer);
@@ -25,6 +31,8 @@ router.get("/analytics", getUserAnalytics);
 router.get("/adaptive", getAdaptiveQuiz);
 
 router.get("/leaderboard-xp", getLeaderboardXP);
+
+
 
 
 
