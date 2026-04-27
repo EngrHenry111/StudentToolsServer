@@ -1,6 +1,9 @@
 import express from "express";
 import { getQuizQuestion, submitQuizAnswer,
-  getLeaderboard, getAIQuiz } from "../controllers/quizController.js";
+  getLeaderboard, getAIQuiz, submitAIQuiz,
+   getAIQuizMixed, getUserAnalytics, getAdaptiveQuiz,
+   getLeaderboardXP
+   } from "../controllers/quizController.js";
 
 const router = express.Router();
 
@@ -12,6 +15,17 @@ router.post("/submit", submitQuizAnswer);
 router.get("/leaderboard", getLeaderboard);
 
 router.get("/ai-quiz", getAIQuiz);
+
+router.post("/ai-quiz/submit", submitAIQuiz);
+
+router.get("/ai-mixed", getAIQuizMixed);
+
+router.get("/analytics", getUserAnalytics);
+
+router.get("/adaptive", getAdaptiveQuiz);
+
+router.get("/leaderboard-xp", getLeaderboardXP);
+
 
 
 export default router;
