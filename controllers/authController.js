@@ -103,7 +103,7 @@ export const loginUser = async (req, res) => {
       refreshToken,
       user: {
         id: user._id,
-        username: user.username
+        email: user.email
       }
     });
 
