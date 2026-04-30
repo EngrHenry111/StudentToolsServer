@@ -143,38 +143,73 @@ export const submitAIQuiz = async (req, res) => {
   }
 };
 
-
 export const getAIQuiz = async (req, res) => {
   try {
-    const {
-      subject = "Physics",
-      topic = "Newton's Laws",
-      limit = 5,
-      username = "Guest"
-    } = req.query;
+    const { subject, topic, limit = 5 } = req.query;
 
-    // 🔐 1. Check limit
-    checkLimit(username);
+    const user = req.user;
 
-    // 🤖 2. Get questions (DB or AI)
-    const questions = await getOrGenerateQuestions({
-      subject,
-      topic,
-      limit: Number(limit)
+    // ✅ CHECK LIMIT FIRST
+    if (user.aiUsageToday >= 5) {
+
+      // 🔥 FALLBACK FROM DATABASE
+      const fallback = await Quiz.find({ subject, topic })
+        .limit(Number(limit));
+
+      if (fallback.length > 0) {
+        return res.json(fallback); // ✅ send stored questions
+      }
+
+      // ❌ Only send error if no fallback exists
+      return res.status(429).json({
+        message: "Daily AI limit reached and no fallback available"
+      });
+    }
+
+    // ✅ ONLY REACH HERE IF USER HAS AI ACCESS
+
+    const aiResponse = await openai.chat.completions.create({
+      model: "gpt-4.1-mini",
+      messages: [
+        {
+          role: "user",
+          content: `Generate ${limit} ${subject} quiz questions on ${topic} in JSON format`
+        }
+      ]
     });
 
-    // 🚫 3. Hide answers
-    const safeQuestions = questions.map(q => ({
-      id: q._id,
-      question: q.question,
-      options: q.options
-    }));
+    const content = aiResponse.choices[0].message.content;
 
-    res.json(safeQuestions);
+    let questions;
+
+    try {
+      questions = JSON.parse(content);
+    } catch (err) {
+      return res.status(500).json({
+        message: "AI returned invalid JSON"
+      });
+    }
+
+    // 🔥 SAVE TO DB (VERY IMPORTANT)
+    await Quiz.insertMany(
+      questions.map(q => ({
+        ...q,
+        subject,
+        topic
+      }))
+    );
+
+    // 🔥 INCREMENT USAGE
+    user.aiUsageToday += 1;
+    await user.save();
+
+    res.json(questions);
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: err.message });
+    res.status(500).json({
+      message: "AI quiz generation failed"
+    });
   }
 };
 
