@@ -79,7 +79,8 @@ export const loginUser = async (req, res) => {
 
     const user = await User.findOne({ email });
 
-    if (!user || !user.isVerified) {
+    // if (!user || !user.isVerified) 
+    if (!user){
       return res.status(400).json({
         message: "Invalid credentials or email not verified"
       });
