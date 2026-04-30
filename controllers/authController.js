@@ -51,8 +51,13 @@ export const registerUser = async (req, res) => {
       verificationToken
     });
 
-    console.log(`Verify link:
-http://localhost:5000/api/auth/verify/${verificationToken}`);
+//     console.log(`Verify link:
+// http://localhost:5000/api/auth/verify/${verificationToken}`);
+
+const baseUrl = process.env.BASE_URL || "http://localhost:5000";
+
+console.log(`Verify link:
+${baseUrl}/api/auth/verify/${verificationToken}`);
 
     res.json({
       message: "User registered. Check console for verification link"
