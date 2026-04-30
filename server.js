@@ -13,10 +13,7 @@ import adminRoutes from "./routes/adminRoutes.js";
 import sitemapRoutes from "./routes/sitemapRoutes.js";
 import mathRoutes from "./routes/mathRoutes.js";
 import quizRoutes from "./routes/quizRoutes.js";
-import authRoutes from "./routes/aiRoutes.js";
-
-
-
+import authRoutes from "./routes/authRoute.js";
 
 import { errorHandler } from "./middleware/errorMiddleware.js"
 
@@ -25,8 +22,13 @@ connectDB();
 const app = express();
 
 app.use(cors({
- origin:"*"
+  origin: ["http://localhost:5173"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
 }));
+
+app.options("*", cors()); // 🔥 handles preflight
 
 app.use(express.json());
 
