@@ -22,15 +22,15 @@ router.get("/leaderboard", getLeaderboard);
 
 router.get("/ai-quiz", getAIQuiz);
 
-router.post("/ai-quiz/submit", submitAIQuiz);
+// router.post("/ai-quiz/submit", submitAIQuiz);
 
 router.get("/ai-mixed", getAIQuizMixed);
 
 router.get("/analytics", getUserAnalytics);
 
-router.get("/adaptive", getAdaptiveQuiz);
+// router.get("/adaptive", getAdaptiveQuiz);
 
-router.get("/leaderboard-xp", getLeaderboardXP);
+// router.get("/leaderboard-xp", getLeaderboardXP);
 
 
 

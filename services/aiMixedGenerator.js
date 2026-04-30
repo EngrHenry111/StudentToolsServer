@@ -1,53 +1,29 @@
-// FILE: /services/aiMixedGenerator.js
-
-import OpenAI from "openai";
 import { topicBank } from "./topicBank.js";
-
-const groq = new OpenAI({
-  apiKey: process.env.GROQ_API_KEY,
-  baseURL: "https://api.groq.com/openai/v1"
-});
+import { getOrGenerateQuestions } from "./aiQuestionServices.js";
 
 export const generateMixedQuiz = async (limit = 10) => {
 
-  const prompt = `
-You are an expert WAEC and JAMB examiner.
+  const subjects = Object.keys(topicBank);
+  const questions = [];
 
-Generate ${limit} multiple-choice questions.
+  for (let i = 0; i < limit; i++) {
 
-Rules:
-- Mix Physics, Mathematics, and Chemistry
-- Use WAEC/JAMB standard difficulty
-- Each question must have:
-  - subject
-  - topic
-  - question
-  - 4 options
-  - correctAnswer
-  - explanation
+    // 🎯 Pick subject (balanced)
+    const subject = subjects[i % subjects.length];
 
-STRICT JSON FORMAT ONLY:
-[
-  {
-    "subject": "",
-    "topic": "",
-    "question": "",
-    "options": ["A","B","C","D"],
-    "correctAnswer": "",
-    "explanation": ""
+    // 🎯 Pick topic from that subject
+    const topics = topicBank[subject];
+    const topic = topics[Math.floor(Math.random() * topics.length)];
+
+    // 🎯 Get question (from DB or AI)
+    const q = await getOrGenerateQuestions({
+      subject,
+      topic,
+      limit: 1
+    });
+
+    questions.push(q[0]);
   }
-]
 
-Topics must be selected from:
-Physics: ${topicBank.physics.join(", ")}
-Mathematics: ${topicBank.mathematics.join(", ")}
-Chemistry: ${topicBank.chemistry.join(", ")}
-`;
-
-  const res = await groq.chat.completions.create({
-    model: "llama-3.1-8b-instant",
-    messages: [{ role: "user", content: prompt }]
-  });
-
-  return JSON.parse(res.choices[0].message.content);
+  return questions;
 };

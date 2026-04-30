@@ -36,6 +36,19 @@ refreshToken: {
 tokenVersion: {
   type: Number,
   default: 0
+},
+
+subscriptionCode: {
+  type: String,
+  default: null
+},subscriptionStatus: {
+  type: String,
+  default: "inactive" // active, cancelled
+},
+
+nextBillingDate: {
+  type: Date,
+  default: null
 }
 
 }, { timestamps: true });
