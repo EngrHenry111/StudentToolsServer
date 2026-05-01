@@ -21,12 +21,15 @@ export const createTutorial = async (req, res) => {
    });
   }
 
-  const tutorial = await Tutorial.create({
-   title: req.body.title,
-   content: req.body.content,
-   category: req.body.category,
-   tags: req.body.tags || []
-  });
+
+const category = req.body.category?.toLowerCase().trim();
+
+const tutorial = await Tutorial.create({
+ title: req.body.title,
+ content: req.body.content,
+ category, // ✅ normalized
+ tags: req.body.tags || []
+});
 
   res.status(201).json(tutorial);
 
@@ -36,42 +39,33 @@ export const createTutorial = async (req, res) => {
  }
 };
 
-// export const createTutorial = async (req, res) => {
-//  try {
-//   const tutorial = await Tutorial.create({
-//    title: req.body.title,
-//    content: req.body.content,
-//    category: req.body.category,
-//    tags: req.body.tags || []
-//   });
-
-//   res.status(201).json(tutorial);
-//  } catch (error) {
-//   console.error("CREATE TUTORIAL ERROR:", error);
-//   res.status(500).json({ message: error.message });
-//  }
-// };
-
 
 /*
 Get All Tutorials
-*/export const getTutorials = async (req,res)=>{
+*/
+
+export const getTutorials = async (req,res)=>{
 
  try{
 
   const page = Number(req.query.page) || 1;
-
   const limit = 6;
-
   const skip = (page - 1) * limit;
 
+  const filter = {};
+
+  // ✅ NEW: filter by category
+  if(req.query.category){
+   filter.category = req.query.category.toLowerCase();
+  }
+
   const tutorials = await Tutorial
-   .find()
+   .find(filter)
    .sort({createdAt:-1})
    .skip(skip)
    .limit(limit);
 
-  const total = await Tutorial.countDocuments();
+  const total = await Tutorial.countDocuments(filter);
 
   res.json({
    tutorials,
@@ -81,9 +75,7 @@ Get All Tutorials
 
  }catch(error){
 
-  res.status(500).json({
-   message:error.message
-  });
+  res.status(500).json({message:error.message});
 
  }
 
@@ -176,6 +168,8 @@ export const getTutorialBySlug = async (req,res)=>{
 
 };
 
+// MODIFY THIS FUNCTION
+
 export const getRelatedTutorials = async (req,res)=>{
 
  try{
@@ -183,18 +177,17 @@ export const getRelatedTutorials = async (req,res)=>{
   const { category, id } = req.query;
 
   const tutorials = await Tutorial.find({
-   category,
+   category: category.toLowerCase(),
    _id: { $ne: id }
   })
-  .limit(3);
+  .sort({views:-1}) // ✅ trending inside category
+  .limit(5);
 
   res.json(tutorials);
 
  }catch(error){
 
-  res.status(500).json({
-   message:error.message
-  });
+  res.status(500).json({message:error.message});
 
  }
 
@@ -215,6 +208,23 @@ export const getTrendingTutorials = async (req,res)=>{
   res.status(500).json({
    message:error.message
   });
+
+ }
+
+};
+
+
+export const getCategories = async (req,res)=>{
+
+ try{
+
+  const categories = await Tutorial.distinct("category");
+
+  res.json(categories);
+
+ }catch(error){
+
+  res.status(500).json({message:error.message});
 
  }
 

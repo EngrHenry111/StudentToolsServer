@@ -6,7 +6,8 @@ import {
  getTutorialBySlug, 
  getRelatedTutorials,
  getTrendingTutorials,
- searchSuggestions
+ searchSuggestions,
+ getCategories
 } from "../controllers/tutorialController.js";
 
 const router = express.Router();
@@ -23,4 +24,6 @@ router.get("/related", getRelatedTutorials);   // must be before slug
 router.get("/trending", getTrendingTutorials);
 
 router.get("/:slug", getTutorialBySlug);
+
+router.get("/categories", getCategories);
 export default router;
