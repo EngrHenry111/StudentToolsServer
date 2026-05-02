@@ -18,6 +18,7 @@ export const createTutorial = async (req, res) => {
 
   // ✅ Check duplicate
   const existing = await Tutorial.findOne({
+    
    title: { $regex: `^${cleanTitle}$`, $options: "i" }
   });
 
@@ -30,6 +31,7 @@ export const createTutorial = async (req, res) => {
   // ✅ Normalize category & topic
   const category = req.body.category?.toLowerCase().trim();
   const topic = req.body.topic?.toLowerCase().trim() || "general";
+  
 
   if (!category) {
    return res.status(400).json({
@@ -67,6 +69,7 @@ export const createTutorial = async (req, res) => {
 
   // ✅ CREATE TUTORIAL
   const tutorial = await Tutorial.create({
+   status: req.body.status || "draft",
    title: req.body.title,
    content: req.body.content,
    category,
@@ -74,6 +77,7 @@ export const createTutorial = async (req, res) => {
    excerpt,
    image,
    tags
+   
   });
 
   res.status(201).json(tutorial);
@@ -298,4 +302,84 @@ export const getTopicsByCategory = async (req,res)=>{
 
  }
 
+};
+
+// ADD THIS
+
+export const updateTutorial = async (req, res) => {
+ try {
+
+  const tutorial = await Tutorial.findById(req.params.id);
+
+  if (!tutorial) {
+   return res.status(404).json({ message: "Tutorial not found" });
+  }
+
+  tutorial.title = req.body.title || tutorial.title;
+  tutorial.content = req.body.content || tutorial.content;
+  tutorial.category = req.body.category || tutorial.category;
+  tutorial.topic = req.body.topic || tutorial.topic;
+  tutorial.excerpt = req.body.excerpt || tutorial.excerpt;
+  tutorial.image = req.body.image || tutorial.image;
+  tutorial.tags = req.body.tags || tutorial.tags;
+  tutorial.status = req.body.status || tutorial.status;
+
+  const updated = await tutorial.save();
+
+  res.json(updated);
+
+ } catch (error) {
+  res.status(500).json({ message: error.message });
+ }
+};
+
+export const getAdminStats = async (req, res) => {
+ try {
+
+  const total = await Tutorial.countDocuments();
+  const published = await Tutorial.countDocuments({ status: "published" });
+  const drafts = await Tutorial.countDocuments({ status: "draft" });
+
+  const totalViews = await Tutorial.aggregate([
+   { $group: { _id: null, views: { $sum: "$views" } } }
+  ]);
+
+  res.json({
+   total,
+   published,
+   drafts,
+   views: totalViews[0]?.views || 0
+  });
+
+ } catch (err) {
+  res.status(500).json({ message: err.message });
+ }
+};
+
+
+// ADD THIS
+
+export const deleteTutorial = async (req, res) => {
+ try {
+
+  const tutorial = await Tutorial.findById(req.params.id);
+
+  if (!tutorial) {
+   return res.status(404).json({
+    message: "Tutorial not found"
+   });
+  }
+
+  await tutorial.deleteOne();
+
+  res.json({
+   message: "Tutorial deleted successfully"
+  });
+
+ } catch (error) {
+  console.error("DELETE TUTORIAL ERROR:", error);
+  res.status(500).json({
+   message: error.message
+  });
+ }
 };

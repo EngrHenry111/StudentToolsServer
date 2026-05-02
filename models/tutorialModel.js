@@ -32,8 +32,14 @@ const tutorialSchema = new mongoose.Schema({
 
  image:String,
 
- tags:[String],
- 
+ tags:[String],// ADD THIS inside tutorialSchema
+
+status: {
+ type: String,
+ enum: ["draft", "published"],
+ default: "draft"
+},
+
 views:{
  type:Number,
  default:0

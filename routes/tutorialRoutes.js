@@ -8,8 +8,13 @@ import {
  getTrendingTutorials,
  searchSuggestions,
  getCategories,
- getTopicsByCategory
+ getTopicsByCategory,
+ updateTutorial,
+ deleteTutorial
 } from "../controllers/tutorialController.js";
+
+import adminAuth from "../middleware/adminAuth.js"
+import { errorHandler } from "../middleware/errorMiddleware.js";
 
 const router = express.Router();
 
@@ -29,4 +34,10 @@ router.get("/:slug", getTutorialBySlug);
 router.get("/categories", getCategories);
 
 router.get("/topics/:category", getTopicsByCategory);
+
+// ADD THIS
+
+
+router.put("/:id", updateTutorial);
+router.delete("/:id", errorHandler, adminAuth, deleteTutorial); // if not already
 export default router;
