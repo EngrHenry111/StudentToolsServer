@@ -7,10 +7,16 @@ Create Tutorial (minimal working version)
 export const createTutorial = async (req, res) => {
  try {
 
-  // Normalize title
-  const cleanTitle = req.body.title.trim().toLowerCase();
+  // ✅ Normalize title
+  const cleanTitle = req.body.title?.trim().toLowerCase();
 
-  // Check if tutorial already exists (by title)
+  if (!cleanTitle) {
+   return res.status(400).json({
+    message: "Title is required"
+   });
+  }
+
+  // ✅ Check duplicate
   const existing = await Tutorial.findOne({
    title: { $regex: `^${cleanTitle}$`, $options: "i" }
   });
@@ -21,24 +27,62 @@ export const createTutorial = async (req, res) => {
    });
   }
 
-// MODIFY this part
+  // ✅ Normalize category & topic
+  const category = req.body.category?.toLowerCase().trim();
+  const topic = req.body.topic?.toLowerCase().trim() || "general";
 
-const category = req.body.category?.toLowerCase().trim();
-const topic = req.body.topic?.toLowerCase().trim() || "general";
+  if (!category) {
+   return res.status(400).json({
+    message: "Category is required"
+   });
+  }
 
-const tutorial = await Tutorial.create({
- title: req.body.title,
- content: req.body.content,
- category,
- topic,
- tags: req.body.tags || []
-});
+  // ✅ Clean content text (for excerpt fallback)
+  const cleanText = req.body.content.replace(/<[^>]+>/g, "");
+
+  // ✅ Excerpt (optional)
+  const excerpt =
+   req.body.excerpt?.trim() ||
+   cleanText.slice(0, 150);
+
+  // ✅ Image (optional)
+  let image = "";
+  if (req.body.image && req.body.image.trim() !== "") {
+   const img = req.body.image.trim();
+
+   // Optional validation
+   if (!img.startsWith("http")) {
+    return res.status(400).json({
+     message: "Image must be a valid URL"
+    });
+   }
+
+   image = img;
+  }
+
+  // ✅ Tags (optional)
+  const tags = Array.isArray(req.body.tags)
+   ? req.body.tags
+   : [];
+
+  // ✅ CREATE TUTORIAL
+  const tutorial = await Tutorial.create({
+   title: req.body.title,
+   content: req.body.content,
+   category,
+   topic,
+   excerpt,
+   image,
+   tags
+  });
 
   res.status(201).json(tutorial);
 
  } catch (error) {
   console.error("CREATE TUTORIAL ERROR:", error);
-  res.status(500).json({ message: error.message });
+  res.status(500).json({
+   message: error.message
+  });
  }
 };
 
