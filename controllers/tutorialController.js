@@ -21,13 +21,16 @@ export const createTutorial = async (req, res) => {
    });
   }
 
+// MODIFY this part
 
 const category = req.body.category?.toLowerCase().trim();
+const topic = req.body.topic?.toLowerCase().trim() || "general";
 
 const tutorial = await Tutorial.create({
  title: req.body.title,
  content: req.body.content,
- category, // ✅ normalized
+ category,
+ topic,
  tags: req.body.tags || []
 });
 
@@ -54,10 +57,13 @@ export const getTutorials = async (req,res)=>{
 
   const filter = {};
 
-  // ✅ NEW: filter by category
-  if(req.query.category){
-   filter.category = req.query.category.toLowerCase();
-  }
+if(req.query.category){
+ filter.category = req.query.category.toLowerCase();
+}
+
+if(req.query.topic){
+ filter.topic = req.query.topic.toLowerCase();
+}
 
   const tutorials = await Tutorial
    .find(filter)
@@ -174,13 +180,14 @@ export const getRelatedTutorials = async (req,res)=>{
 
  try{
 
-  const { category, id } = req.query;
+  const { category, topic, id } = req.query;
 
   const tutorials = await Tutorial.find({
    category: category.toLowerCase(),
+   topic: topic?.toLowerCase(),
    _id: { $ne: id }
   })
-  .sort({views:-1}) // ✅ trending inside category
+  .sort({views:-1})
   .limit(5);
 
   res.json(tutorials);
@@ -221,6 +228,27 @@ export const getCategories = async (req,res)=>{
   const categories = await Tutorial.distinct("category");
 
   res.json(categories);
+
+ }catch(error){
+
+  res.status(500).json({message:error.message});
+
+ }
+
+};
+
+
+export const getTopicsByCategory = async (req,res)=>{
+
+ try{
+
+  const {category} = req.params;
+
+  const topics = await Tutorial.distinct("topic",{
+   category: category.toLowerCase()
+  });
+
+  res.json(topics);
 
  }catch(error){
 
