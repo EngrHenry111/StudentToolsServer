@@ -6,6 +6,21 @@ export const generateSitemap = async (req, res) => {
 
   const tutorials = await Tutorial.find();
 
+  // ADD THIS AFTER: const tutorials = await Tutorial.find();
+
+const categoriesSet = new Set();
+const topicsSet = new Set();
+
+tutorials.forEach(t => {
+  if (t.category) {
+    categoriesSet.add(t.category.toLowerCase());
+  }
+
+  if (t.category && t.topic) {
+    topicsSet.add(`${t.category.toLowerCase()}/${t.topic.toLowerCase()}`);
+  }
+});
+
   const smStream = new SitemapStream({
    hostname: "https://studenttoolsng.com"
   });
@@ -42,6 +57,26 @@ const staticPages = [
     changefreq: page.changefreq,
     priority: page.priority,
     lastmod: new Date().toISOString()
+  });
+});
+
+
+// ADD CATEGORY PAGES
+categoriesSet.forEach(cat => {
+  smStream.write({
+    url: `/tutorials/${cat}`,
+    changefreq: "weekly",
+    priority: 0.85
+  });
+});
+
+
+// ADD TOPIC PAGES
+topicsSet.forEach(path => {
+  smStream.write({
+    url: `/tutorials/${path}`,
+    changefreq: "weekly",
+    priority: 0.8
   });
 });
 
