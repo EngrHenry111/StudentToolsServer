@@ -19,14 +19,16 @@ const tutorialSchema = new mongoose.Schema({
  },
  // ADD this field
 
-topic:{
- type:String,
- default:"general"
-},
+
 
  excerpt:String,
 
  category:String,
+ 
+ topic: {
+ type: String,
+ lowercase: true
+},
 
  image:String,
 

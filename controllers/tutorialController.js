@@ -47,27 +47,28 @@ const tutorial = await Tutorial.create({
 Get All Tutorials
 */
 
-export const getTutorials = async (req,res)=>{
-
- try{
+export const getTutorials = async (req, res) => {
+ try {
 
   const page = Number(req.query.page) || 1;
   const limit = 6;
   const skip = (page - 1) * limit;
 
+  const { category, topic } = req.query;
+
+  // ✅ BUILD FILTER OBJECT
   const filter = {};
 
-if(req.query.category){
- filter.category = req.query.category.toLowerCase();
-}
+  if (category) {
+   filter.category = category.toLowerCase();
+  }
 
-if(req.query.topic){
- filter.topic = req.query.topic.toLowerCase();
-}
+  if (topic) {
+   filter.topic = topic.toLowerCase();
+  }
 
-  const tutorials = await Tutorial
-   .find(filter)
-   .sort({createdAt:-1})
+  const tutorials = await Tutorial.find(filter)
+   .sort({ createdAt: -1 })
    .skip(skip)
    .limit(limit);
 
@@ -79,12 +80,9 @@ if(req.query.topic){
    currentPage: page
   });
 
- }catch(error){
-
-  res.status(500).json({message:error.message});
-
+ } catch (error) {
+  res.status(500).json({ message: error.message });
  }
-
 };
 
 
