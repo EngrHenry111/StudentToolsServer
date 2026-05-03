@@ -333,28 +333,6 @@ export const updateTutorial = async (req, res) => {
  }
 };
 
-export const getAdminStats = async (req, res) => {
- try {
-
-  const total = await Tutorial.countDocuments();
-  const published = await Tutorial.countDocuments({ status: "published" });
-  const drafts = await Tutorial.countDocuments({ status: "draft" });
-
-  const totalViews = await Tutorial.aggregate([
-   { $group: { _id: null, views: { $sum: "$views" } } }
-  ]);
-
-  res.json({
-   total,
-   published,
-   drafts,
-   views: totalViews[0]?.views || 0
-  });
-
- } catch (err) {
-  res.status(500).json({ message: err.message });
- }
-};
 
 
 // ADD THIS

@@ -35,3 +35,43 @@ export const adminLogin = async (req,res)=>{
  }
 
 };
+
+
+
+export const getAdminStats = async (req, res) => {
+ try {
+
+  const total = await Tutorial.countDocuments();
+
+  const published = await Tutorial.countDocuments({
+   status: "published"
+  });
+
+  const drafts = await Tutorial.countDocuments({
+   status: "draft"
+  });
+
+  const viewsAgg = await Tutorial.aggregate([
+   {
+    $group: {
+     _id: null,
+     totalViews: { $sum: "$views" }
+    }
+   }
+  ]);
+
+  const views = viewsAgg[0]?.totalViews || 0;
+
+  res.json({
+   total,
+   published,
+   drafts,
+   views
+  });
+
+ } catch (error) {
+  res.status(500).json({
+   message: error.message
+  });
+ }
+};
