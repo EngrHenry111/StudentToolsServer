@@ -383,3 +383,21 @@ export const deleteTutorial = async (req, res) => {
   });
  }
 };
+
+// ADD THIS
+
+export const getTutorialById = async (req, res) => {
+ try {
+
+  const tutorial = await Tutorial.findById(req.params.id);
+
+  if (!tutorial) {
+   return res.status(404).json({ message: "Tutorial not found" });
+  }
+
+  res.json(tutorial);
+
+ } catch (error) {
+  res.status(500).json({ message: error.message });
+ }
+};
