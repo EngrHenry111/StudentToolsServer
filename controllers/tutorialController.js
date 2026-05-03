@@ -198,24 +198,41 @@ export const searchSuggestions = async (req,res)=>{
 Get Tutorial By Slug
 */
 
-export const getTutorialBySlug = async (req,res)=>{
+// MODIFY THIS PART in tutorialController.js
 
- try{
+export const getTutorialBySlug = async (req, res) => {
 
-  const tutorial = await Tutorial.findOneAndUpdate(
-   { slug:req.params.slug },
-   { $inc:{ views:1 } },
-   { new:true }
-  );
+ try {
+
+  let tutorial;
+
+  // ✅ CHECK IF ID (Mongo ObjectId)
+  if (req.params.slug.match(/^[0-9a-fA-F]{24}$/)) {
+
+   tutorial = await Tutorial.findByIdAndUpdate(
+    req.params.slug,
+    { $inc: { views: 1 } },
+    { new: true }
+   );
+
+  } else {
+
+   tutorial = await Tutorial.findOneAndUpdate(
+    { slug: req.params.slug },
+    { $inc: { views: 1 } },
+    { new: true }
+   );
+
+  }
+
+  if (!tutorial) {
+   return res.status(404).json({ message: "Tutorial not found" });
+  }
 
   res.json(tutorial);
 
- }catch(error){
-
-  res.status(500).json({
-   message:error.message
-  });
-
+ } catch (error) {
+  res.status(500).json({ message: error.message });
  }
 
 };
@@ -379,3 +396,4 @@ export const getTutorialById = async (req, res) => {
   res.status(500).json({ message: error.message });
  }
 };
+
