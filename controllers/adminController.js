@@ -37,30 +37,31 @@ export const adminLogin = async (req,res)=>{
 };
 
 
-
 export const getAdminStats = async (req, res) => {
  try {
 
+  // ✅ TOTAL
   const total = await Tutorial.countDocuments();
 
+  // ✅ SAFE published (fallback if no status field)
   const published = await Tutorial.countDocuments({
-   status: "published"
+   $or: [
+    { status: "published" },
+    { status: { $exists: false } } // fallback
+   ]
   });
 
+  // ✅ SAFE drafts
   const drafts = await Tutorial.countDocuments({
    status: "draft"
   });
 
-  const viewsAgg = await Tutorial.aggregate([
-   {
-    $group: {
-     _id: null,
-     totalViews: { $sum: "$views" }
-    }
-   }
-  ]);
+  // ✅ SAFE views aggregation
+  const tutorials = await Tutorial.find().select("views");
 
-  const views = viewsAgg[0]?.totalViews || 0;
+  const views = tutorials.reduce((sum, t) => {
+   return sum + (t.views || 0);
+  }, 0);
 
   res.json({
    total,
@@ -70,6 +71,8 @@ export const getAdminStats = async (req, res) => {
   });
 
  } catch (error) {
+  console.error("ADMIN STATS ERROR:", error); // 👈 VERY IMPORTANT
+
   res.status(500).json({
    message: error.message
   });
