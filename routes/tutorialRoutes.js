@@ -11,7 +11,8 @@ import {
  getTopicsByCategory,
  updateTutorial,
  deleteTutorial,
- getTutorialById
+ getTutorialById,
+ getSubtopics
 } from "../controllers/tutorialController.js";
 
 import adminAuth from "../middleware/adminAuth.js"
@@ -42,4 +43,6 @@ router.put("/:id", updateTutorial);
 router.delete("/:id", errorHandler, adminAuth, deleteTutorial); // if not already
 
 router.get("/preview/:id", getTutorialById);
+
+router.get("/subtopics", getSubtopics);
 export default router;

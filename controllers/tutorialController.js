@@ -397,3 +397,29 @@ export const getTutorialById = async (req, res) => {
  }
 };
 
+
+export const getSubtopics = async (req, res) => {
+  try {
+    const { category, topic } = req.query;
+
+    if (!category || !topic) {
+      return res.status(400).json({ message: "Category and topic required" });
+    }
+
+    const tutorials = await Tutorial.find({
+      category,
+      topic
+    }).select("title slug");
+
+    // Extract subtopics (titles)
+    const subtopics = tutorials.map(t => ({
+      title: t.title,
+      slug: t.slug
+    }));
+
+    res.json(subtopics);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
