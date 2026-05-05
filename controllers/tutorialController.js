@@ -7,8 +7,8 @@ Create Tutorial (minimal working version)
 export const createTutorial = async (req, res) => {
  try {
 
-  // ✅ Normalize title
-  const cleanTitle = req.body.title?.trim().toLowerCase();
+  // ✅ Validate title
+  const cleanTitle = req.body.title?.trim();
 
   if (!cleanTitle) {
    return res.status(400).json({
@@ -16,9 +16,8 @@ export const createTutorial = async (req, res) => {
    });
   }
 
-  // ✅ Check duplicate
+  // ✅ Check duplicate (case insensitive)
   const existing = await Tutorial.findOne({
-    
    title: { $regex: `^${cleanTitle}$`, $options: "i" }
   });
 
@@ -31,7 +30,6 @@ export const createTutorial = async (req, res) => {
   // ✅ Normalize category & topic
   const category = req.body.category?.toLowerCase().trim();
   const topic = req.body.topic?.toLowerCase().trim() || "general";
-  
 
   if (!category) {
    return res.status(400).json({
@@ -39,20 +37,30 @@ export const createTutorial = async (req, res) => {
    });
   }
 
-  // ✅ Clean content text (for excerpt fallback)
-  const cleanText = req.body.content.replace(/<[^>]+>/g, "");
+  // ✅ Ensure content exists
+  if (!req.body.content) {
+   return res.status(400).json({
+    message: "Content is required"
+   });
+  }
 
-  // ✅ Excerpt (optional)
+  // ✅ Remove HTML tags helper
+  const stripHTML = (html) =>
+   html?.replace(/<[^>]+>/g, "") || "";
+
+  // ✅ Clean text (for fallback excerpt)
+  const cleanText = stripHTML(req.body.content);
+
+  // ✅ EXCERPT LOGIC (BEST VERSION)
   const excerpt =
    req.body.excerpt?.trim() ||
    cleanText.slice(0, 150);
 
   // ✅ Image (optional)
   let image = "";
-  if (req.body.image && req.body.image.trim() !== "") {
+  if (req.body.image?.trim()) {
    const img = req.body.image.trim();
 
-   // Optional validation
    if (!img.startsWith("http")) {
     return res.status(400).json({
      message: "Image must be a valid URL"
@@ -62,22 +70,28 @@ export const createTutorial = async (req, res) => {
    image = img;
   }
 
-  // ✅ Tags (optional)
+  // ✅ Tags (ensure array)
   const tags = Array.isArray(req.body.tags)
-   ? req.body.tags
+   ? req.body.tags.map(tag => tag.toLowerCase().trim())
    : [];
 
-  // ✅ CREATE TUTORIAL
+  // ✅ Generate SLUG (VERY IMPORTANT FOR SEO)
+  const slug = cleanTitle
+   .toLowerCase()
+   .replace(/[^a-z0-9\s-]/g, "")
+   .replace(/\s+/g, "-");
+
+  // ✅ CREATE
   const tutorial = await Tutorial.create({
-   status: req.body.status || "draft",
-   title: req.body.title,
+   title: cleanTitle,
+   slug,
    content: req.body.content,
    category,
    topic,
    excerpt,
    image,
-   tags
-   
+   tags,
+   status: req.body.status || "draft"
   });
 
   res.status(201).json(tutorial);
