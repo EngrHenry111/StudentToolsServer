@@ -7,6 +7,7 @@ Create Tutorial (minimal working version)
 export const createTutorial = async (req, res) => {
  try {
 
+  console.log("RAW CONTENT:", req.body.content);
   // ✅ Validate title
   const cleanTitle = req.body.title?.trim();
 
