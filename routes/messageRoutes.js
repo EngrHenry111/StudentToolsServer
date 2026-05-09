@@ -2,7 +2,8 @@ import express from "express";
 
 import {
  sendMessage,
- getMessages
+ getMessages,
+ deleteMessage
 } from "../controllers/messageController.js";
 
 const router = express.Router();
@@ -12,5 +13,8 @@ router.post("/", sendMessage);
 
 /* GET ALL MESSAGES */
 router.get("/", getMessages);
+
+/* DELETE MESSAGE */
+router.delete("/:id", deleteMessage);
 
 export default router;

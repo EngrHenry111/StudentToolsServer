@@ -130,3 +130,40 @@ export const getMessages = async (req, res) => {
  }
 
 };
+
+
+/* ================= DELETE MESSAGE ================= */
+export const deleteMessage = async (req, res) => {
+
+ try {
+
+  const { id } = req.params;
+
+  const deletedMessage = await Message.findByIdAndDelete(id);
+
+  if (!deletedMessage) {
+
+   return res.status(404).json({
+    success: false,
+    message: "Message not found"
+   });
+
+  }
+
+  res.status(200).json({
+   success: true,
+   message: "Message deleted successfully"
+  });
+
+ } catch (error) {
+
+  console.log(error);
+
+  res.status(500).json({
+   success: false,
+   message: error.message
+  });
+
+ }
+
+};
