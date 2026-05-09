@@ -5,6 +5,8 @@ export const sendMessage = async (req,res)=>{
 
  try{
 
+  console.log("BODY:", req.body);
+
   const {name,email,message} = req.body;
 
   if(!name || !email || !message){
@@ -15,22 +17,18 @@ export const sendMessage = async (req,res)=>{
 
   }
 
-  // Save message in database
   const newMessage = await Message.create({
    name,
    email,
    message
   });
 
-  // Send email notification
+  console.log("MESSAGE SAVED");
+
   await transporter.sendMail({
-
    from: process.env.EMAIL_USER,
-
    to: process.env.EMAIL_USER,
-
    subject: "New Contact Message - StudentToolsNG",
-
    html: `
     <h3>New Contact Message</h3>
     <p><strong>Name:</strong> ${name}</p>
@@ -38,8 +36,9 @@ export const sendMessage = async (req,res)=>{
     <p><strong>Message:</strong></p>
     <p>${message}</p>
    `
-
   });
+
+  console.log("EMAIL SENT");
 
   res.status(201).json({
    success:true,
@@ -48,7 +47,7 @@ export const sendMessage = async (req,res)=>{
 
  }catch(error){
 
-  console.error(error);
+  console.error("MESSAGE ERROR:", error);
 
   res.status(500).json({
    message:error.message
