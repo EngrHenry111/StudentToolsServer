@@ -107,3 +107,26 @@ export const sendMessage = async (req, res) => {
  }
 
 };
+
+
+/* ================= GET ALL MESSAGES ================= */
+export const getMessages = async (req, res) => {
+
+ try {
+
+  const messages = await Message.find().sort({ createdAt: -1 });
+
+  res.status(200).json(messages);
+
+ } catch (error) {
+
+  console.log(error);
+
+  res.status(500).json({
+   success: false,
+   message: error.message
+  });
+
+ }
+
+};
