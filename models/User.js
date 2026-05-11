@@ -44,7 +44,16 @@ subscriptionCode: {
 nextBillingDate: {
   type: Date,
   default: null
-}
+},
+freeQuizCount: {
+  type: Number,
+  default: 0
+},
+
+lastQuizDate: {
+  type: Date,
+  default: null
+},
 
 }, { timestamps: true });
 

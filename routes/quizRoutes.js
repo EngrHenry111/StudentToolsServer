@@ -4,27 +4,29 @@ import { getQuizQuestion, submitQuizAnswer,
    getAIQuizMixed, getUserAnalytics, getAdaptiveQuiz,
    getLeaderboardXP
    } from "../controllers/quizController.js";
+   import checkSubscription from "../middleware/checkSubscription.js";
 
 const router = express.Router();
 
 import authUser from "../middleware/authUser.js";
 
 // protect routes
-router.get("/adaptive", authUser, getAdaptiveQuiz);
+// router.get("/adaptive", authUser, getAdaptiveQuiz);
 router.post("/ai-quiz/submit", authUser, submitAIQuiz);
 router.get("/leaderboard-xp", authUser, getLeaderboardXP);
 router.get("/question", getQuizQuestion);
+
 
 router.post("/submit", submitQuizAnswer);
 
 // 🔥 ADD THIS
 router.get("/leaderboard", getLeaderboard);
 
-router.get("/ai-quiz", getAIQuiz);
+// router.get("/ai-quiz", getAIQuiz);
 
 // router.post("/ai-quiz/submit", submitAIQuiz);
 
-router.get("/ai-mixed", getAIQuizMixed);
+// router.get("/ai-mixed", getAIQuizMixed);
 
 router.get("/analytics", getUserAnalytics);
 
@@ -32,7 +34,26 @@ router.get("/analytics", getUserAnalytics);
 
 // router.get("/leaderboard-xp", getLeaderboardXP);
 
+router.get(
+  "/ai-quiz",
+  authUser,
+  checkSubscription,
+  getAIQuiz
+);
 
+router.get(
+  "/adaptive",
+  authUser,
+  checkSubscription,
+  getAdaptiveQuiz
+);
+
+router.get(
+  "/ai-mixed",
+  authUser,
+  checkSubscription,
+  getAIQuizMixed
+);
 
 
 
