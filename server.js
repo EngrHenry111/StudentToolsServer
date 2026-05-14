@@ -14,6 +14,7 @@ import sitemapRoutes from "./routes/sitemapRoutes.js";
 import mathRoutes from "./routes/mathRoutes.js";
 import quizRoutes from "./routes/quizRoutes.js";
 import authRoutes from "./routes/authRoute.js";
+import studyPlannerRoutes from "./routes/studyPlannerRoutes.js";
 
 import { errorHandler } from "./middleware/errorMiddleware.js"
 
@@ -60,6 +61,8 @@ app.use("/api/quiz", quizRoutes);
 app.use("/api/sitemap", sitemapRoutes);
 
 app.use("/api/auth", authRoutes);
+
+app.use("/api/study-planner", studyPlannerRoutes);
 
 app.use(errorHandler);
 
