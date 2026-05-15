@@ -206,12 +206,13 @@ export const getAIQuiz = async (req, res) => {
     res.json(questions);
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({
-      message: "AI quiz generation failed"
-    });
-  }
-};
+
+  console.error("AI QUIZ ERROR:", err);
+
+  res.status(500).json({
+    message: err.message
+  });
+}
 
 
 
