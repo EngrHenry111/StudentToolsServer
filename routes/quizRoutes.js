@@ -28,7 +28,7 @@ router.get("/leaderboard", getLeaderboard);
 
 // router.get("/ai-mixed", getAIQuizMixed);
 
-router.get("/analytics", getUserAnalytics);
+// router.get("/analytics", getUserAnalytics);
 
 // router.get("/adaptive", getAdaptiveQuiz);
 
@@ -55,6 +55,11 @@ router.get(
   getAIQuizMixed
 );
 
+router.get(
+  "/analytics",
+  authUser,
+  getUserAnalytics
+);
 
 
 export default router;
