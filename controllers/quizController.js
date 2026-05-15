@@ -213,6 +213,7 @@ export const getAIQuiz = async (req, res) => {
     message: err.message
   });
 }
+};
 
 
 
