@@ -16,7 +16,8 @@ import quizRoutes from "./routes/quizRoutes.js";
 import authRoutes from "./routes/authRoute.js";
 import studyPlannerRoutes from "./routes/studyPlannerRoutes.js";
 
-import { errorHandler } from "./middleware/errorMiddleware.js"
+import { errorHandler } from "./middleware/errorMiddleware.js";
+import paymentRoutes from "./routes/paymentRoute.js";
 
 connectDB();
 
@@ -63,6 +64,8 @@ app.use("/api/sitemap", sitemapRoutes);
 app.use("/api/auth", authRoutes);
 
 app.use("/api/study-planner", studyPlannerRoutes);
+
+app.use("/api/payment", paymentRoutes);
 
 app.use(errorHandler);
 
