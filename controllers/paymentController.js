@@ -86,8 +86,18 @@ export const startSubscription = async (req, res) => {
     });
 
   } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+
+  console.error(
+    "PAYSTACK SUBSCRIBE ERROR:",
+    err.response?.data || err.message
+  );
+
+  res.status(500).json({
+    message:
+      err.response?.data ||
+      err.message
+  });
+}
 };
 
 
