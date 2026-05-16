@@ -1,6 +1,6 @@
 
 
-import { createPlan } from "../services/paystackService.js";
+import { initializePayment } from "../services/paystackService.js";
 
 import axios from "axios";
 import User from "../models/User.js";

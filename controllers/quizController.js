@@ -143,78 +143,107 @@ export const submitAIQuiz = async (req, res) => {
   }
 };
 
+// export const getAIQuiz = async (req, res) => {
+//   try {
+//     const { subject, topic, limit = 5 } = req.query;
+
+//     const user = req.user;
+
+//     // ✅ CHECK LIMIT FIRST
+//     if (user.aiUsageToday >= 5) {
+
+//       // 🔥 FALLBACK FROM DATABASE
+//       const fallback = await Quiz.find({ subject, topic })
+//         .limit(Number(limit));
+
+//       if (fallback.length > 0) {
+//         return res.json(fallback); // ✅ send stored questions
+//       }
+
+//       // ❌ Only send error if no fallback exists
+//       return res.status(429).json({
+//         message: "Daily AI limit reached and no fallback available"
+//       });
+//     }
+
+//     // ✅ ONLY REACH HERE IF USER HAS AI ACCESS
+
+//     const aiResponse = await groq.chat.completions.create({
+//       model: "gpt-4.1-mini",
+//       messages: [
+//         {
+//           role: "user",
+//           content: `Generate ${limit} ${subject} quiz questions on ${topic} in JSON format`
+//         }
+//       ]
+//     });
+
+//     const content = aiResponse.choices[0].message.content;
+
+//     let questions;
+
+//     try {
+//       questions = JSON.parse(content);
+//     } catch (err) {
+//       return res.status(500).json({
+//         message: "AI returned invalid JSON"
+//       });
+//     }
+
+//     // 🔥 SAVE TO DB (VERY IMPORTANT)
+//     await Quiz.insertMany(
+//       questions.map(q => ({
+//         ...q,
+//         subject,
+//         topic
+//       }))
+//     );
+
+//     // 🔥 INCREMENT USAGE
+//     user.aiUsageToday += 1;
+//     await user.save();
+
+//     res.json(questions);
+
+//   } catch (err) {
+
+//   console.error("AI QUIZ ERROR:", err);
+
+//   res.status(500).json({
+//     message: err.message
+//   });
+// }
+// };
 export const getAIQuiz = async (req, res) => {
   try {
-    const { subject, topic, limit = 5 } = req.query;
 
-    const user = req.user;
+    const {
+      subject,
+      topic,
+      limit = 5
+    } = req.query;
 
-    // ✅ CHECK LIMIT FIRST
-    if (user.aiUsageToday >= 5) {
-
-      // 🔥 FALLBACK FROM DATABASE
-      const fallback = await Quiz.find({ subject, topic })
-        .limit(Number(limit));
-
-      if (fallback.length > 0) {
-        return res.json(fallback); // ✅ send stored questions
-      }
-
-      // ❌ Only send error if no fallback exists
-      return res.status(429).json({
-        message: "Daily AI limit reached and no fallback available"
-      });
-    }
-
-    // ✅ ONLY REACH HERE IF USER HAS AI ACCESS
-
-    const aiResponse = await openai.chat.completions.create({
-      model: "gpt-4.1-mini",
-      messages: [
-        {
-          role: "user",
-          content: `Generate ${limit} ${subject} quiz questions on ${topic} in JSON format`
-        }
-      ]
-    });
-
-    const content = aiResponse.choices[0].message.content;
-
-    let questions;
-
-    try {
-      questions = JSON.parse(content);
-    } catch (err) {
-      return res.status(500).json({
-        message: "AI returned invalid JSON"
-      });
-    }
-
-    // 🔥 SAVE TO DB (VERY IMPORTANT)
-    await Quiz.insertMany(
-      questions.map(q => ({
-        ...q,
+    const questions =
+      await getOrGenerateQuestions({
         subject,
-        topic
-      }))
-    );
-
-    // 🔥 INCREMENT USAGE
-    user.aiUsageToday += 1;
-    await user.save();
+        topic,
+        limit
+      });
 
     res.json(questions);
 
   } catch (err) {
 
-  console.error("AI QUIZ ERROR:", err);
+    console.error(
+      "AI QUIZ ERROR:",
+      err
+    );
 
-  res.status(500).json({
-    message: err.message
-  });
-}
+    res.status(500).json({
+      message: "AI quiz generation failed"
+    });
+  }
 };
-
 
 
 export const getAdaptiveQuiz = async (req, res) => {

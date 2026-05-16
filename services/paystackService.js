@@ -3,7 +3,7 @@ import axios from "axios";
 
 const PAYSTACK_URL = "https://api.paystack.co";
 
-export const createPlan = async () => {
+export const initializePayment = async () => {
   const response = await axios.post(
     `${PAYSTACK_URL}/plan`,
     {

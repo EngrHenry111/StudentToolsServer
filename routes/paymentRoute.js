@@ -10,7 +10,7 @@ import {
 
 import authUser from "../middleware/authUser.js";
 
-import { paystackWebhook } from "../controllers/paystackWebhook.js";
+import { paystackWebhook } from "../controllers/paystackwebhook.js";
 
 const router = express.Router();
 
