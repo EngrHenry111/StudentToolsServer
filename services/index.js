@@ -22,6 +22,7 @@ import solveAge from "./mathEngine/age/ageSolver.js";
 import solveProfitLoss from "./mathEngine/profitLoss/profiltLossSolver.js";
 import solveMixture from "./mathEngine/mixture/mixtureSolver.js";
 import solvePhysics from "./mathEngine/physics/physicsSolver.js";
+import solvePolynomial from "./mathEngine/polynomial/polynomialSolver.js";
 
 export const solveMathProblem = (problem) => {
 
@@ -56,6 +57,8 @@ export const solveMathProblem = (problem) => {
       profitloss: solveProfitLoss,
       mixture: solveMixture,
       physics: solvePhysics,
+      polynomial: solvePolynomial,
+      
     };
 
     // 🔥 TOPIC SOLVER

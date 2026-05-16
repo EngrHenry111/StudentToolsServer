@@ -110,6 +110,11 @@ if (
 if (hasWords(text, ["speed", "km", "time", "distance", "km/h"]))
   return "speed";
 
+if (
+  text.includes("(") &&
+  text.includes(")")
+) return "polynomial";
+
   // 🔹 3. FALLBACK
   return "general";
 };
