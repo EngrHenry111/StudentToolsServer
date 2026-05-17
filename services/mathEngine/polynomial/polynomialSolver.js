@@ -5,12 +5,43 @@ import parsePolynomial from "./polynomialParser.js";
 
 // 🔥 FORMAT RESULT
 const formatPolynomial = (expression) => {
-  return expression
-    .replace(/\+\-/g, "-")
-    .replace(/^-b\^2\+a\^2$/, "a^2-b^2")
-    .replace(/\s+/g, "");
-};
 
+  let exp = expression
+    .replace(/\+\-/g, "-")
+    .replace(/\s+/g, "");
+
+  // 🔥 Convert weird orderings manually
+  // Example: -6-a+a^2 -> a^2-a-6
+
+  const terms = exp.match(/[+\-]?[^+\-]+/g) || [];
+
+  const grouped = {
+    square: [],
+    linear: [],
+    constant: [],
+  };
+
+  terms.forEach((term) => {
+
+    if (term.includes("^2")) {
+      grouped.square.push(term);
+
+    } else if (/[a-z]/i.test(term)) {
+      grouped.linear.push(term);
+
+    } else {
+      grouped.constant.push(term);
+    }
+  });
+
+  return [
+    ...grouped.square,
+    ...grouped.linear,
+    ...grouped.constant,
+  ]
+    .join("+")
+    .replace(/\+\-/g, "-");
+};
 const solvePolynomial = (problem) => {
   try {
 
