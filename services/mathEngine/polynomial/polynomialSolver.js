@@ -7,7 +7,7 @@ const solvePolynomial = (problem) => {
 
   try {
 
-    // 🔥 parse expression
+    // 🔥 Parse
     const parsed = parsePolynomial(problem);
 
     if (!parsed.expression) {
@@ -17,29 +17,45 @@ const solvePolynomial = (problem) => {
       };
     }
 
-    // 🔥 expand expression
+    // 🔥 Normalize powers
+    const normalized = parsed.expression
+      .replace(/\^/g, "^");
+
+    // 🔥 Expand
     const expanded = nerdamer
-      .expand(parsed.expression)
+      .expand(normalized)
+      .toString();
+
+    // 🔥 Simplify
+    const simplified = nerdamer(expanded)
       .toString();
 
     return {
+
       success: true,
+
       topic: "Polynomial Expansion",
+
       formula: "Bracket Expansion",
 
       steps: [
+
         `Original expression: ${problem}`,
+
         `Convert adjacent brackets into multiplication`,
-        `Apply distributive law`,
+
+        `Apply distributive property`,
+
         `Combine like terms`,
+
       ],
 
-      answer: expanded,
+      answer: simplified,
 
       relatedTopics: [
         "Algebra",
-        "Factorization",
         "Quadratic Expressions",
+        "Factorization",
       ],
     };
 
