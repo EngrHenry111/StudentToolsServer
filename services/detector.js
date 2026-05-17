@@ -12,13 +12,33 @@ const detectTopic = (problem) => {
   if (text.includes("n(")) return "set";
 
   // 🔥 POLYNOMIAL
-    if (
-      text.includes("(") &&
-      text.includes(")") &&
-      /[a-z]/i.test(text)
-    ) {
-      return "polynomial";
-    }
+   // 🔥 POLYNOMIAL / BRACKET EXPRESSIONS
+if (
+
+  // has variables
+  /[a-z]/i.test(text) &&
+
+  (
+
+    // bracket multiplication
+    /\(.+\)\(.+\)/.test(text) ||
+
+    // powers
+    text.includes("^") ||
+
+    // x terms
+    /\dx/.test(text) ||
+
+    // algebraic brackets
+    /\([a-z0-9+\- ]+\)/i.test(text)
+
+  )
+
+) {
+
+  return "polynomial";
+}
+
   // 🔹 2. WORD-BASED DETECTION (NEW UPGRADE)
   if (
     text.includes("increase") ||

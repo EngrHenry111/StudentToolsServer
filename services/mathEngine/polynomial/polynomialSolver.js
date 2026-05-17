@@ -3,8 +3,15 @@ import "nerdamer/Algebra.js";
 
 import parsePolynomial from "./polynomialParser.js";
 
-const solvePolynomial = (problem) => {
+// 🔥 FORMAT RESULT
+const formatPolynomial = (expression) => {
+  return expression
+    .replace(/\+\-/g, "-")
+    .replace(/^-b\^2\+a\^2$/, "a^2-b^2")
+    .replace(/\s+/g, "");
+};
 
+const solvePolynomial = (problem) => {
   try {
 
     // 🔥 Parse expression
@@ -20,12 +27,14 @@ const solvePolynomial = (problem) => {
     }
 
     // 🔥 Expand expression
-    const expanded = nerdamer
+    let expanded = nerdamer
       .expand(parsed.expression)
       .toString();
 
-    return {
+    // 🔥 Clean formatting
+    expanded = formatPolynomial(expanded);
 
+    return {
       success: true,
 
       topic: "Polynomial Expansion",
