@@ -8,10 +8,8 @@ const formatPolynomial = (expression) => {
 
   let exp = expression
     .replace(/\+\-/g, "-")
+    .replace(/\*/g, "") // 🔥 remove multiplication sign
     .replace(/\s+/g, "");
-
-  // 🔥 Convert weird orderings manually
-  // Example: -6-a+a^2 -> a^2-a-6
 
   const terms = exp.match(/[+\-]?[^+\-]+/g) || [];
 
@@ -24,12 +22,15 @@ const formatPolynomial = (expression) => {
   terms.forEach((term) => {
 
     if (term.includes("^2")) {
+
       grouped.square.push(term);
 
     } else if (/[a-z]/i.test(term)) {
+
       grouped.linear.push(term);
 
     } else {
+
       grouped.constant.push(term);
     }
   });
@@ -42,6 +43,7 @@ const formatPolynomial = (expression) => {
     .join("+")
     .replace(/\+\-/g, "-");
 };
+
 const solvePolynomial = (problem) => {
   try {
 
