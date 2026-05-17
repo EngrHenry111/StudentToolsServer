@@ -13,12 +13,17 @@ You are a WAEC/JAMB exam setter.
 Generate ${count} high-quality multiple-choice questions on "${topic}" in ${subject}.
 
 STRICT RULES:
+- Questions must match WAEC/JAMB standard
+- Include calculation and theory questions
+- Physics calculations must use correct formulas
+- Chemistry equations must be scientifically correct
+- Mathematics questions must be solvable
+- Options must be FULL TEXT
+- Never return only A/B/C/D
+- Wrong options must still look realistic
+- Only ONE correct answer
+- Explanations must be educational
 - Output ONLY valid JSON
-- DO NOT include markdown (no \`\`\`)
-- DO NOT include explanations outside JSON
-- DO NOT include comments
-- DO NOT include trailing commas
-- Ensure JSON is perfectly parsable
 
 Each question must include:
 - question
@@ -101,12 +106,22 @@ FORMAT:
     throw new Error("AI returned invalid JSON after cleaning");
   }
 
-  parsed = parsed.filter(q =>
-  q.question &&
-  Array.isArray(q.options) &&
-  q.options.length === 4 &&
-  q.options.every(opt => opt.length > 3)
-);
+//   parsed = parsed.filter(q =>
+//   q.question &&
+//   Array.isArray(q.options) &&
+//   q.options.length === 4 &&
+//   q.options.every(opt => opt.length > 3)
+// );
+parsed = parsed.filter(q => {
+  return (
+    q.question &&
+    Array.isArray(q.options) &&
+    q.options.length === 4 &&
+    q.correctAnswer &&
+    q.explanation &&
+    q.options.every(opt => opt.length > 5)
+  );
+});
 
   return parsed.map(q => ({
     subject,
