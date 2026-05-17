@@ -11,6 +11,14 @@ const detectTopic = (problem) => {
   if (text.includes("p=") || text.includes("interest")) return "si";
   if (text.includes("n(")) return "set";
 
+  // 🔥 POLYNOMIAL
+    if (
+      text.includes("(") &&
+      text.includes(")") &&
+      /[a-z]/i.test(text)
+    ) {
+      return "polynomial";
+    }
   // 🔹 2. WORD-BASED DETECTION (NEW UPGRADE)
   if (
     text.includes("increase") ||
@@ -109,11 +117,6 @@ if (
 
 if (hasWords(text, ["speed", "km", "time", "distance", "km/h"]))
   return "speed";
-
-if (
-  text.includes("(") &&
-  text.includes(")")
-) return "polynomial";
 
   // 🔹 3. FALLBACK
   return "general";

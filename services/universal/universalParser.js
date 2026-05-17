@@ -10,6 +10,20 @@ const universalParser = (problem) => {
 
   const intent = detectIntent(text);
 
+  // 🔥 POLYNOMIAL / ALGEBRAIC EXPRESSIONS
+if (
+  text.includes("(") &&
+  text.includes(")") &&
+  /[a-z]/i.test(text)
+) {
+  return {
+    topic: "polynomial",
+    intent: "expand",
+    variables: {},
+    text,
+  };
+}
+
   let topic = "general";
 
   // 🔥 TOPIC DETECTION

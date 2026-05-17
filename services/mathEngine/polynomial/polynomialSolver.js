@@ -1,28 +1,41 @@
 import nerdamer from "nerdamer";
-import "nerdamer/Algebra";
+import "nerdamer/Algebra.js";
+
+import parsePolynomial from "./polynomialParser.js";
 
 const solvePolynomial = (problem) => {
 
   try {
 
-    // 🔥 normalize
-    const clean = problem
-      .replace(/\s+/g, "")
-      .replace(/\)\(/g, ")*(");
+    // 🔥 parse expression
+    const parsed = parsePolynomial(problem);
 
-    // 🔥 expand
-    const expanded = nerdamer.expand(clean).toString();
+    if (!parsed.expression) {
+      return {
+        success: false,
+        message: "Invalid polynomial expression",
+      };
+    }
+
+    // 🔥 expand expression
+    const expanded = nerdamer
+      .expand(parsed.expression)
+      .toString();
 
     return {
       success: true,
       topic: "Polynomial Expansion",
       formula: "Bracket Expansion",
+
       steps: [
         `Original expression: ${problem}`,
+        `Convert adjacent brackets into multiplication`,
         `Apply distributive law`,
-        `Expand all brackets`,
+        `Combine like terms`,
       ],
+
       answer: expanded,
+
       relatedTopics: [
         "Algebra",
         "Factorization",
@@ -31,6 +44,8 @@ const solvePolynomial = (problem) => {
     };
 
   } catch (err) {
+
+    console.error("Polynomial Solver Error:", err);
 
     return {
       success: false,

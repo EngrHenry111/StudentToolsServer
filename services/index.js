@@ -1,8 +1,7 @@
+import detectTopic from "./detector.js";
 import { evaluate } from "mathjs";
 
-import universalParser from "./universal/universalParser.js";
-
-// 🔥 EXISTING SOLVERS
+// 🔥 SOLVERS
 import solvePercentage from "./mathEngine/percentage/percentageSolver.js";
 import solveAlgebra from "./mathEngine/algebra/algebraSolver.js";
 import solveSetTheory from "./mathEngine/setThreory/setSolver.js";
@@ -22,19 +21,17 @@ import solveAge from "./mathEngine/age/ageSolver.js";
 import solveProfitLoss from "./mathEngine/profitLoss/profiltLossSolver.js";
 import solveMixture from "./mathEngine/mixture/mixtureSolver.js";
 import solvePhysics from "./mathEngine/physics/physicsSolver.js";
+
 import solvePolynomial from "./mathEngine/polynomial/polynomialSolver.js";
 
 export const solveMathProblem = (problem) => {
 
   try {
 
-    // 🔥 UNIVERSAL AI PARSER
-    const parsed = universalParser(problem);
-
-    const topic = parsed.topic;
+    const topic = detectTopic(problem);
 
     console.log("📥 Problem:", problem);
-    console.log("🧠 Parsed:", parsed);
+    console.log("🎯 Detected topic:", topic);
 
     const solvers = {
 
@@ -57,22 +54,21 @@ export const solveMathProblem = (problem) => {
       profitloss: solveProfitLoss,
       mixture: solveMixture,
       physics: solvePhysics,
+
       polynomial: solvePolynomial,
-      
     };
 
-    // 🔥 TOPIC SOLVER
+    // 🔥 USE TOPIC SOLVER
     if (solvers[topic]) {
 
-      // ✅ SEND PARSED OBJECT
-      const result = solvers[topic](parsed);
+      const result = solvers[topic](problem);
 
       if (result && !result.error) {
         return result;
       }
     }
 
-    // 🔥 UNIVERSAL FALLBACK
+    // 🔥 FALLBACK CALCULATOR
     try {
 
       const clean = problem
@@ -87,10 +83,10 @@ export const solveMathProblem = (problem) => {
         formula: "Expression Evaluation",
         steps: [
           `Rewrite expression: ${clean}`,
-          `Evaluate mathematically`
+          `Evaluate mathematically`,
         ],
         answer,
-        relatedTopics: ["Arithmetic"]
+        relatedTopics: ["Arithmetic"],
       };
 
     } catch {
@@ -111,3 +107,82 @@ export const solveMathProblem = (problem) => {
     };
   }
 };
+
+
+// export const solveMathProblem = (problem) => {
+//   try {
+//     const topic = detectTopic(problem);
+
+    
+//     const solvers = {
+//   percentage: solvePercentage,
+//   algebra: solveAlgebra,
+//   set: solveSetTheory,
+//   fraction: solveFractions, // ✅ FIXED
+//   ratio: solveRatio,
+//   si: solveSI,
+// };
+
+//     const solver = solvers[topic];
+
+//     if (!solver) {
+//       return { error: "Unsupported problem type" };
+//     }
+
+//     const result = solver(problem);
+
+//     // 🔒 Ensure valid response
+//     if (!result || typeof result !== "object") {
+//       return { error: "Solver failed to return valid response" };
+//     }
+
+//     return result;
+
+//   } catch (error) {
+//     console.error("❌ Engine crash:", error);
+//     return { error: "Internal solver error" };
+//   }
+// };
+
+
+
+// import detectTopic from "./detector.js";
+// import solvePercentage from "./mathEngine/percentage/percentageSolver.js";
+// import solveAlgebra from "./mathEngine/algebra/algebraSolver.js";
+// import solveSetTheory from "./mathEngine/setThreory/setSolver.js";
+
+// import solveFractions from "./mathEngine/fraction/fractionSolver.js";
+// import solveRatio from "./mathEngine/ratio/ratioSolver.js";
+// import solveSI from "./mathEngine/simpleInterest/siSolver.js";
+
+// export const solveMathProblem = (problem) => {
+//   const topic = detectTopic(problem);
+
+//   switch (topic) {
+//     case "percentage":
+//       return solvePercentage(problem);
+
+//     case "algebra":
+//       return solveAlgebra(problem);
+
+//     case "set":
+//       return solveSetTheory(problem);
+
+//       case "fractions":
+//   result = solveFractions(problem);
+//   break;
+
+// case "ratio":
+//   result = solveRatio(problem);
+//   break;
+
+// case "si":
+//   result = solveSI(problem);
+//   break;
+
+//     default:
+//       return {
+//         error: "Unsupported problem type",
+//       };
+//   }
+// };
