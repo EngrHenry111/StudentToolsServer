@@ -7,8 +7,10 @@ const solvePolynomial = (problem) => {
 
   try {
 
-    // 🔥 Parse
+    // 🔥 Parse expression
     const parsed = parsePolynomial(problem);
+
+    console.log("🧠 Parsed Polynomial:", parsed);
 
     if (!parsed.expression) {
       return {
@@ -17,17 +19,9 @@ const solvePolynomial = (problem) => {
       };
     }
 
-    // 🔥 Normalize powers
-    const normalized = parsed.expression
-      .replace(/\^/g, "^");
-
-    // 🔥 Expand
+    // 🔥 Expand expression
     const expanded = nerdamer
-      .expand(normalized)
-      .toString();
-
-    // 🔥 Simplify
-    const simplified = nerdamer(expanded)
+      .expand(parsed.expression)
       .toString();
 
     return {
@@ -39,18 +33,13 @@ const solvePolynomial = (problem) => {
       formula: "Bracket Expansion",
 
       steps: [
-
         `Original expression: ${problem}`,
-
-        `Convert adjacent brackets into multiplication`,
-
-        `Apply distributive property`,
-
+        `Convert implicit multiplication`,
+        `Apply distributive law`,
         `Combine like terms`,
-
       ],
 
-      answer: simplified,
+      answer: expanded,
 
       relatedTopics: [
         "Algebra",
