@@ -36,7 +36,9 @@ tokenVersion: {
 subscriptionCode: {
   type: String,
   default: null
-},subscriptionStatus: {
+},
+
+subscriptionStatus: {
   type: String,
   default: "inactive" // active, cancelled
 },
@@ -54,9 +56,15 @@ lastQuizDate: {
   type: Date,
   default: null
 },
+
 isPremium: {
   type: Boolean,
   default: false
+},
+
+aiQuizAttempts: {
+  type: Number,
+  default: 0
 },
 
 }, { timestamps: true });
