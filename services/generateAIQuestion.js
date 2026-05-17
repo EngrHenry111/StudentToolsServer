@@ -22,10 +22,22 @@ STRICT RULES:
 
 Each question must include:
 - question
-- options (A-D)
+- 4 COMPLETE options
 - correctAnswer
 - explanation
 
+IMPORTANT:
+- Every option must contain FULL TEXT
+- Never return only "A", "B", "C", "D"
+- Format options exactly like:
+
+"options": [
+  "A. Newton's First Law",
+  "B. Newton's Second Law",
+  "C. Newton's Third Law",
+  "D. Law of Gravitation"
+]
+  
 FORMAT:
 
 [
@@ -88,6 +100,13 @@ FORMAT:
     console.error("PARSE ERROR RAW:", raw);
     throw new Error("AI returned invalid JSON after cleaning");
   }
+
+  parsed = parsed.filter(q =>
+  q.question &&
+  Array.isArray(q.options) &&
+  q.options.length === 4 &&
+  q.options.every(opt => opt.length > 3)
+);
 
   return parsed.map(q => ({
     subject,

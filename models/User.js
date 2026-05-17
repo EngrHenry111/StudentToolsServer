@@ -54,6 +54,10 @@ lastQuizDate: {
   type: Date,
   default: null
 },
+isPremium: {
+  type: Boolean,
+  default: false
+},
 
 }, { timestamps: true });
 
