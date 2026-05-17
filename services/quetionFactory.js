@@ -12,6 +12,8 @@ import generateSpeedQuestion from "../services/mathEngine/quiz/speedQuiz.js";
 import generateIndicesQuestion from "../services/mathEngine/quiz/indicesQuiz.js";
 import generateSimultaneousQuestion from "../services/mathEngine/quiz/simultaneousQuiz.js";
 
+import generatePolynomialQuestion from "../services/mathEngine/quiz/polynomialQuiz.js";
+
 export const generateQuestion = (topic, difficulty) => {
   switch (topic) {
     case "percentage":
@@ -44,6 +46,9 @@ export const generateQuestion = (topic, difficulty) => {
 
     case "simultaneous":
       return generateSimultaneousQuestion(difficulty);
+
+    case "polynomial":
+      return generatePolynomialQuestion(difficulty);
 
     default:
       return generatePercentageQuestion("easy");
