@@ -8,7 +8,7 @@ const formatPolynomial = (expression) => {
 
   let exp = expression
     .replace(/\+\-/g, "-")
-    .replace(/\*/g, "") // 🔥 remove multiplication sign
+    .replace(/\*/g, "")
     .replace(/\s+/g, "");
 
   const terms = exp.match(/[+\-]?[^+\-]+/g) || [];
@@ -40,8 +40,11 @@ const formatPolynomial = (expression) => {
     ...grouped.linear,
     ...grouped.constant,
   ]
-    .join("+")
-    .replace(/\+\-/g, "-");
+    .join("")
+    .replace(/\+\-/g, "-")
+    .replace(/\-\+/g, "-")
+    .replace(/\+\+/g, "+")
+    .replace(/^\+/, "");
 };
 
 const solvePolynomial = (problem) => {
