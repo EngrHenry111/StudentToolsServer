@@ -214,6 +214,7 @@ export const submitAIQuiz = async (req, res) => {
 //   });
 // }
 // };
+
 export const getAIQuiz = async (req, res) => {
   try {
 
@@ -223,24 +224,79 @@ export const getAIQuiz = async (req, res) => {
       limit = 5
     } = req.query;
 
+    // =========================
+    // VALIDATION
+    // =========================
+
+    if (!subject || !topic) {
+      return res.status(400).json({
+        message: "Subject and topic are required"
+      });
+    }
+
+    // =========================
+    // CLEAN VALUES
+    // =========================
+
+    const cleanSubject =
+      subject.trim().toLowerCase();
+
+    const cleanTopic =
+      topic.trim();
+
+    const cleanLimit =
+      parseInt(limit) || 5;
+
+    // =========================
+    // LIMIT PROTECTION
+    // =========================
+
+    if (cleanLimit > 20) {
+      return res.status(400).json({
+        message: "Maximum limit is 20"
+      });
+    }
+
+    // =========================
+    // FETCH / GENERATE QUESTIONS
+    // =========================
+
     const questions =
       await getOrGenerateQuestions({
-        subject,
-        topic,
-        limit
+        subject: cleanSubject,
+        topic: cleanTopic,
+        limit: cleanLimit
       });
 
-    res.json(questions);
+    // =========================
+    // EMPTY CHECK
+    // =========================
+
+    if (!questions || questions.length === 0) {
+      return res.status(404).json({
+        message: "No quiz questions found"
+      });
+    }
+
+    // =========================
+    // RETURN QUESTIONS
+    // =========================
+
+    res.status(200).json(questions);
 
   } catch (err) {
 
     console.error(
       "AI QUIZ ERROR:",
-      err
+      err.message
     );
 
     res.status(500).json({
-      message: "AI quiz generation failed"
+      message: "AI quiz generation failed",
+      error:
+        process.env.NODE_ENV === "development"
+          ? err.message
+          : undefined
     });
   }
 };
