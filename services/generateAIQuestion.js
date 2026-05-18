@@ -8,49 +8,47 @@ const groq = new OpenAI({
 export const generateAIQuestions = async ({ subject, topic, count }) => {
 
   const prompt = `
-You are a WAEC/JAMB exam setter.
+You are an expert WAEC/JAMB physics examiner.
 
 Generate ${count} high-quality multiple-choice questions on "${topic}" in ${subject}.
 
 STRICT RULES:
-- Questions must match WAEC/JAMB standard
-- Include calculation and theory questions
-- Physics calculations must use correct formulas
-- Chemistry equations must be scientifically correct
-- Mathematics questions must be solvable
-- Options must be FULL TEXT
-- Never return only A/B/C/D
-- Wrong options must still look realistic
-- Only ONE correct answer
-- Explanations must be educational
 - Output ONLY valid JSON
+- No markdown
+- No explanations outside JSON
+- No comments
+- No trailing commas
+- Questions must resemble real WAEC/JAMB questions
+- Questions must be concise and clear
+- Each option must be SHORT
+- DO NOT use explanatory sentences as options
+- ONLY one correct answer
+- Wrong options must look realistic
+- Avoid options like:
+  "We can use formula..."
+  "Cannot be determined"
+  "Depends on..."
+  unless absolutely necessary
 
-Each question must include:
+Each question object must contain:
 - question
-- 4 COMPLETE options
+- options
 - correctAnswer
 - explanation
 
-IMPORTANT:
-- Every option must contain FULL TEXT
-- Never return only "A", "B", "C", "D"
-- Format options exactly like:
-
-"options": [
-  "A. Newton's First Law",
-  "B. Newton's Second Law",
-  "C. Newton's Third Law",
-  "D. Law of Gravitation"
-]
-  
 FORMAT:
 
 [
   {
-    "question": "...",
-    "options": ["A. ...", "B. ...", "C. ...", "D. ..."],
-    "correctAnswer": "A. ...",
-    "explanation": "..."
+    "question": "What is friction?",
+    "options": [
+      "A. A resisting force",
+      "B. A magnetic force",
+      "C. An electric force",
+      "D. A nuclear force"
+    ],
+    "correctAnswer": "A. A resisting force",
+    "explanation": "Friction opposes motion between surfaces."
   }
 ]
 `;
