@@ -1,6 +1,13 @@
 import mongoose from "mongoose";
 
 const topicPerformanceSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    default: null,
+    index: true
+  },
+
   username: {
     type: String,
     default: "Guest"

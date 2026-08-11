@@ -105,7 +105,10 @@ export const loginUser = async (req, res) => {
       refreshToken,
       user: {
         id: user._id,
-        email: user.email
+        username: user.username,
+        email: user.email,
+        isPremium: user.isPremium,
+        subscriptionStatus: user.subscriptionStatus
       }
     });
 
@@ -172,6 +175,29 @@ export const verifyEmail = async (req, res) => {
 
     res.json({ message: "Email verified successfully" });
 
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+// ================================
+// 👤 GET CURRENT USER (used on app load / after login)
+// ================================
+
+export const getMe = async (req, res) => {
+  try {
+    const user = req.user; // attached by authUser middleware
+
+    res.json({
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      isPremium: user.isPremium,
+      subscriptionStatus: user.subscriptionStatus,
+      nextBillingDate: user.nextBillingDate,
+      aiQuizAttempts: user.aiQuizAttempts
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

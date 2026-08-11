@@ -8,7 +8,7 @@ const groq = new OpenAI({
 export const generateAIQuestions = async ({ subject, topic, count }) => {
 
   const prompt = `
-You are an expert WAEC/JAMB physics examiner.
+You are an expert WAEC/JAMB ${subject} examiner.
 
 Generate ${count} high-quality multiple-choice questions on "${topic}" in ${subject}.
 
@@ -22,6 +22,7 @@ STRICT RULES:
 - Questions must be concise and clear
 - Each option must be SHORT
 - DO NOT use explanatory sentences as options
+- DO NOT prefix options with "A.", "B.", "1)", etc. — plain text only
 - ONLY one correct answer
 - Wrong options must look realistic
 - Avoid options like:
@@ -32,8 +33,8 @@ STRICT RULES:
 
 Each question object must contain:
 - question
-- options
-- correctAnswer
+- options (exactly 4 plain-text options, no letter/number prefixes)
+- correctAnswer (must exactly match one of the strings in "options")
 - explanation
 
 FORMAT:
@@ -42,12 +43,12 @@ FORMAT:
   {
     "question": "What is friction?",
     "options": [
-      "A. A resisting force",
-      "B. A magnetic force",
-      "C. An electric force",
-      "D. A nuclear force"
+      "A resisting force",
+      "A magnetic force",
+      "An electric force",
+      "A nuclear force"
     ],
-    "correctAnswer": "A. A resisting force",
+    "correctAnswer": "A resisting force",
     "explanation": "Friction opposes motion between surfaces."
   }
 ]
@@ -110,6 +111,21 @@ FORMAT:
 //   q.options.length === 4 &&
 //   q.options.every(opt => opt.length > 3)
 // );
+// Some models still prefix options with "A.", "B)", "1)" etc. despite
+// instructions — strip that so the text always matches what the client
+// renders (it draws its own lettered badges) and so correctAnswer
+// comparisons stay reliable.
+const stripPrefix = (text) =>
+  typeof text === "string"
+    ? text.replace(/^\s*[A-Da-d1-4][.):]\s*/, "").trim()
+    : text;
+
+parsed = parsed.map(q => ({
+  ...q,
+  options: Array.isArray(q.options) ? q.options.map(stripPrefix) : q.options,
+  correctAnswer: stripPrefix(q.correctAnswer)
+}));
+
 parsed = parsed.filter(q => {
   return (
     q.question &&
@@ -117,7 +133,8 @@ parsed = parsed.filter(q => {
     q.options.length === 4 &&
     q.correctAnswer &&
     q.explanation &&
-    q.options.every(opt => opt.length > 5)
+    q.options.includes(q.correctAnswer) &&
+    q.options.every(opt => opt.length > 1)
   );
 });
 

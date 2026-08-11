@@ -23,6 +23,8 @@ export const paystackWebhook = async (
           isPremium: true,
           subscriptionCode:
             event.data.subscription_code,
+          subscriptionEmailToken:
+            event.data.email_token,
 
           subscriptionStatus: "active",
 
@@ -30,6 +32,25 @@ export const paystackWebhook = async (
             event.data.next_payment_date
         }
       );
+    }
+
+    // recurring charge succeeded — extend billing date, keep premium active
+    if (event.event === "charge.success" && event.data.plan) {
+      const userId = event.data.metadata?.userId;
+
+      if (userId) {
+        await User.findByIdAndUpdate(userId, {
+          isPremium: true,
+          subscriptionStatus: "active"
+        });
+      }
+    }
+
+    // payment failed on a renewal — Paystack will retry; we don't revoke
+    // access immediately, subscription.disable will fire if it ultimately fails
+    if (event.event === "invoice.payment_failed") {
+      // no-op for now — logged for visibility
+      console.warn("Paystack renewal payment failed:", event.data?.subscription?.subscription_code);
     }
 
     // subscription cancelled

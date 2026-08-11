@@ -1,5 +1,3 @@
-
-
 import { initializePayment } from "../services/paystackService.js";
 
 import axios from "axios";
@@ -8,6 +6,10 @@ import User from "../models/User.js";
 export const verifyPayment = async (req, res) => {
   try {
     const { reference } = req.query;
+
+    if (!reference) {
+      return res.status(400).json({ message: "Missing payment reference" });
+    }
 
     const response = await axios.get(
       `https://api.paystack.co/transaction/verify/${reference}`,
@@ -21,11 +23,14 @@ export const verifyPayment = async (req, res) => {
     const data = response.data.data;
 
     if (data.status === "success") {
-      const userId = data.metadata.userId;
+      const userId = data.metadata?.userId;
 
-      await User.findByIdAndUpdate(userId, {
-        isPremium: true
-      });
+      if (userId) {
+        await User.findByIdAndUpdate(userId, {
+          isPremium: true,
+          subscriptionStatus: "active"
+        });
+      }
 
       return res.json({
         message: "Payment successful, premium activated"
@@ -35,43 +40,48 @@ export const verifyPayment = async (req, res) => {
     res.status(400).json({ message: "Payment not successful" });
 
   } catch (err) {
+    console.error("VERIFY PAYMENT ERROR:", err.response?.data || err.message);
     res.status(500).json({ message: err.message });
   }
 };
 
+// One-off payment (₦5000 flat, no recurring billing)
 export const startPayment = async (req, res) => {
   try {
-    const user = req.user;
-    const { email } = req.body;
+    const user = req.user; // full Mongoose doc, thanks to authUser
+    const email = req.body.email || user.email;
 
-    const payment = await initializePayment(
-      email,
-      5000, // ₦5000
-      user.id
-    );
+    const payment = await initializePayment(email, 5000, user._id);
 
     res.json({
       authorization_url: payment.authorization_url
     });
 
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error("START PAYMENT ERROR:", err.response?.data || err.message);
+    res.status(500).json({ message: err.response?.data?.message || err.message });
   }
 };
 
-
+// Recurring monthly subscription via a Paystack plan
 export const startSubscription = async (req, res) => {
   try {
     const user = req.user;
-    const { email } = req.body;
+    const email = req.body.email || user.email;
+
+    if (!process.env.PAYSTACK_PLAN_CODE) {
+      return res.status(500).json({
+        message: "Subscription plan is not configured on the server"
+      });
+    }
 
     const response = await axios.post(
       "https://api.paystack.co/transaction/initialize",
       {
         email,
-        plan: process.env.PAYSTACK_PLAN_CODE, // 🔥 important
+        plan: process.env.PAYSTACK_PLAN_CODE,
         metadata: {
-          userId: user.id
+          userId: user._id.toString()
         }
       },
       {
@@ -86,38 +96,31 @@ export const startSubscription = async (req, res) => {
     });
 
   } catch (err) {
-
-  console.error(
-    "PAYSTACK SUBSCRIBE ERROR:",
-    err.response?.data || err.message
-  );
-
-  res.status(500).json({
-    message:
-      err.response?.data ||
-      err.message
-  });
-}
+    console.error("PAYSTACK SUBSCRIBE ERROR:", err.response?.data || err.message);
+    res.status(500).json({
+      message: err.response?.data?.message || err.message
+    });
+  }
 };
-
 
 
 export const cancelSubscription = async (req, res) => {
   try {
     const user = req.user;
 
-    if (!user.subscriptionCode) {
+    if (!user.subscriptionCode || !user.subscriptionEmailToken) {
       return res.status(400).json({
-        message: "No active subscription"
+        message: "No active subscription to cancel"
       });
     }
 
-    // 🔥 Call Paystack to disable subscription
+    // Paystack requires the subscription code AND its email token
+    // (not the user's email address) to disable a subscription.
     await axios.post(
       "https://api.paystack.co/subscription/disable",
       {
         code: user.subscriptionCode,
-        token: user.email // Paystack may require email/token
+        token: user.subscriptionEmailToken
       },
       {
         headers: {
@@ -126,7 +129,6 @@ export const cancelSubscription = async (req, res) => {
       }
     );
 
-    // 🔄 Update user locally
     user.isPremium = false;
     user.subscriptionStatus = "cancelled";
 
@@ -137,7 +139,8 @@ export const cancelSubscription = async (req, res) => {
     });
 
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error("CANCEL SUBSCRIPTION ERROR:", err.response?.data || err.message);
+    res.status(500).json({ message: err.response?.data?.message || err.message });
   }
 };
 
@@ -148,9 +151,11 @@ export const getBillingInfo = async (req, res) => {
 
     res.json({
       isPremium: user.isPremium,
+      status: user.subscriptionStatus,
       subscriptionStatus: user.subscriptionStatus,
       nextBillingDate: user.nextBillingDate,
-      email: user.email
+      email: user.email,
+      plan: user.isPremium ? "Pro" : "Free"
     });
 
   } catch (err) {

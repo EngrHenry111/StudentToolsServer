@@ -1,21 +1,14 @@
 import QuizProgress from "../models/QuizProgress.js";
 import TopicPerformance from "../models/topicPerformance.js";
+import Question from "../models/questionModel.js";
 
 import { generateQuestion } from "../services/quetionFactory.js";
-
-import { solveMathProblem } from "../services/index.js"; // 🔥 reuse your solver
-
+import { solveMathProblem } from "../services/index.js";
 
 import { getOrGenerateQuestions } from "../services/aiQuestionServices.js";
 import { checkLimit } from "../services/limitServices.js";
-
-
 import { generateMixedQuiz } from "../services/aiMixedGenerator.js";
-// import { checkLimit } from "../services/limitServices.js";
-
 import { updateTopicPerformance, getWeakTopics } from "../services/performanceService.js";
-// import TopicPerformance from "../models/TopicPerformance.js";
-
 import { generateAdaptiveQuiz } from "../services/adaptiveQuizService.js";
 
 import {
@@ -24,319 +17,234 @@ import {
   updateStreak
 } from "../services/gamificationService.js";
 
+// Sentinel topic value used for a user's single "overall" Pro progress
+// document (aggregate XP/level/streak), so it never collides with the
+// per-topic documents used by the free practice quiz.
+const OVERALL_TOPIC = "__overall__";
+
+// Builds a stable identity object from the authenticated user attached
+// by the authUser middleware. Every Pro quiz route uses this instead of
+// trusting a username sent in the request body/query.
+const identityFromReq = (req) => ({
+  userId: req.user._id,
+  username: req.user.username
+});
+
+
+// =====================================================
+// MIXED QUIZ (multi-subject, AI-backed)
+// =====================================================
 export const getAIQuizMixed = async (req, res) => {
   try {
-    const { limit = 10, username = "Guest" } = req.query;
+    const { limit = 10 } = req.query;
+    const identity = identityFromReq(req);
 
-    // 🔐 LIMIT CONTROL
-    checkLimit(username);
+    checkLimit(String(identity.userId));
 
-    // 🤖 GENERATE EXAM QUESTIONS
-    const questions = await generateMixedQuiz(limit);
+    const questions = await generateMixedQuiz(Number(limit));
 
-    // 💾 CACHE INTO DATABASE
-    await Question.insertMany(questions);
-
-    // 🚫 HIDE ANSWERS FOR STUDENTS
-    const safe = questions.map(q => ({
-      subject: q.subject,
-      topic: q.topic,
-      question: q.question,
-      options: q.options
-    }));
+    const safe = questions
+      .filter(Boolean)
+      .map(q => ({
+        id: q._id,
+        subject: q.subject,
+        topic: q.topic,
+        question: q.question,
+        options: q.options
+      }));
 
     res.json(safe);
 
   } catch (err) {
+    console.error("MIXED QUIZ ERROR:", err.message);
     res.status(500).json({ message: err.message });
   }
 };
 
 
+// =====================================================
+// SUBMIT AI / MIXED / ADAPTIVE QUIZ (authenticated)
+// =====================================================
 export const submitAIQuiz = async (req, res) => {
   try {
-    const { username = "Guest", topic, answers } = req.body;
+    const identity = identityFromReq(req);
+    const { answers } = req.body;
+
+    if (!Array.isArray(answers) || answers.length === 0) {
+      return res.status(400).json({ message: "No answers submitted" });
+    }
 
     let score = 0;
-    let results = [];
+    const results = [];
 
     for (const item of answers) {
       const { questionId, selected } = item;
 
-      // 1. Get question from DB
       const q = await Question.findById(questionId);
-
       if (!q) continue;
 
       const isCorrect = q.correctAnswer === selected;
-
-      // 2. Score logic
       if (isCorrect) score += 10;
 
-      // 3. Build result
       results.push({
-      subject: q.subject,
-      topic: q.topic,
-      question: q.question,
-      selected,
-      correctAnswer: q.correctAnswer,
-      isCorrect,
-      explanation: q.explanation
-});
-
-}
-
-    // 4. Save progress (reuse your existing model)
-    let user = await QuizProgress.findOne({ username, topic });
-
-    if (!user) {
-      user = await QuizProgress.create({ username, topic });
+        questionId: q._id,
+        subject: q.subject,
+        topic: q.topic,
+        question: q.question,
+        selected,
+        correctAnswer: q.correctAnswer,
+        isCorrect,
+        explanation: q.explanation
+      });
     }
 
-    user.attempts += answers.length;
-    user.correct += results.filter(r => r.isCorrect).length;
-   
-    // user.score += score;
-    // 🎯 XP SYSTEM
+    if (results.length === 0) {
+      return res.status(400).json({ message: "None of the submitted questions could be found" });
+    }
+
+    let progress = await QuizProgress.findOne({
+      userId: identity.userId,
+      topic: OVERALL_TOPIC
+    });
+
+    if (!progress) {
+      progress = await QuizProgress.create({
+        userId: identity.userId,
+        username: identity.username,
+        topic: OVERALL_TOPIC
+      });
+    }
+
+    progress.attempts += results.length;
+    progress.correct += results.filter(r => r.isCorrect).length;
+    progress.score += score;
+
     const earnedXP = calculateXP(results);
-    user.xp += earnedXP;
+    progress.xp += earnedXP;
+    progress.level = calculateLevel(progress.xp);
 
-    // 🧠 LEVEL SYSTEM
-    user.level = calculateLevel(user.xp);
+    updateStreak(progress);
 
-    // 🔥 STREAK SYSTEM
-    updateStreak(user);
+    await progress.save();
 
-    // streak logic
-    if (results.every(r => r.isCorrect)) {
-      user.streak += 1;
-    } else {
-      user.streak = 0;
-    }
+    await updateTopicPerformance(identity, results);
+    const weakTopics = await getWeakTopics(identity);
 
-    // 🧠 SAVE PERFORMANCE
-    await updateTopicPerformance(username, results);
-
-    // 🔍 GET WEAK TOPICS
-    const weakTopics = await getWeakTopics(username);
-
-    await user.save();
-
-    // 5. Response
     res.json({
-       totalQuestions: answers.length,
-      // score,
-      // correct: results.filter(r => r.isCorrect).length,
-      // results
+      totalQuestions: answers.length,
       score,
       xpEarned: earnedXP,
-      totalXP: user.xp,
-      level: user.level,
-      streak: user.streak,
+      totalXP: progress.xp,
+      level: progress.level,
+      streak: progress.streak,
       results,
       weakTopics
     });
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Failed to submit AI quiz" });
+    console.error("SUBMIT AI QUIZ ERROR:", err);
+    res.status(500).json({ message: "Failed to submit quiz" });
   }
 };
 
-// export const getAIQuiz = async (req, res) => {
-//   try {
-//     const { subject, topic, limit = 5 } = req.query;
 
-//     const user = req.user;
-
-//     // ✅ CHECK LIMIT FIRST
-//     if (user.aiUsageToday >= 5) {
-
-//       // 🔥 FALLBACK FROM DATABASE
-//       const fallback = await Quiz.find({ subject, topic })
-//         .limit(Number(limit));
-
-//       if (fallback.length > 0) {
-//         return res.json(fallback); // ✅ send stored questions
-//       }
-
-//       // ❌ Only send error if no fallback exists
-//       return res.status(429).json({
-//         message: "Daily AI limit reached and no fallback available"
-//       });
-//     }
-
-//     // ✅ ONLY REACH HERE IF USER HAS AI ACCESS
-
-//     const aiResponse = await groq.chat.completions.create({
-//       model: "gpt-4.1-mini",
-//       messages: [
-//         {
-//           role: "user",
-//           content: `Generate ${limit} ${subject} quiz questions on ${topic} in JSON format`
-//         }
-//       ]
-//     });
-
-//     const content = aiResponse.choices[0].message.content;
-
-//     let questions;
-
-//     try {
-//       questions = JSON.parse(content);
-//     } catch (err) {
-//       return res.status(500).json({
-//         message: "AI returned invalid JSON"
-//       });
-//     }
-
-//     // 🔥 SAVE TO DB (VERY IMPORTANT)
-//     await Quiz.insertMany(
-//       questions.map(q => ({
-//         ...q,
-//         subject,
-//         topic
-//       }))
-//     );
-
-//     // 🔥 INCREMENT USAGE
-//     user.aiUsageToday += 1;
-//     await user.save();
-
-//     res.json(questions);
-
-//   } catch (err) {
-
-//   console.error("AI QUIZ ERROR:", err);
-
-//   res.status(500).json({
-//     message: err.message
-//   });
-// }
-// };
-
+// =====================================================
+// AI QUIZ (single subject/topic, AI-generated, cached in DB)
+// =====================================================
 export const getAIQuiz = async (req, res) => {
   try {
-
-    const {
-      subject,
-      topic,
-      limit = 5
-    } = req.query;
-
-    // =========================
-    // VALIDATION
-    // =========================
+    const { subject, topic, limit = 5 } = req.query;
 
     if (!subject || !topic) {
-      return res.status(400).json({
-        message: "Subject and topic are required"
-      });
+      return res.status(400).json({ message: "Subject and topic are required" });
     }
 
-    // =========================
-    // CLEAN VALUES
-    // =========================
-
-    const cleanSubject =
-      subject.trim().toLowerCase();
-
-    const cleanTopic =
-      topic.trim();
-
-    const cleanLimit =
-      parseInt(limit) || 5;
-
-    // =========================
-    // LIMIT PROTECTION
-    // =========================
+    const cleanSubject = subject.trim().toLowerCase();
+    const cleanTopic = topic.trim();
+    const cleanLimit = parseInt(limit) || 5;
 
     if (cleanLimit > 20) {
-      return res.status(400).json({
-        message: "Maximum limit is 20"
-      });
+      return res.status(400).json({ message: "Maximum limit is 20" });
     }
 
-    // =========================
-    // FETCH / GENERATE QUESTIONS
-    // =========================
-
-    const questions =
-      await getOrGenerateQuestions({
-        subject: cleanSubject,
-        topic: cleanTopic,
-        limit: cleanLimit
-      });
-
-    // =========================
-    // EMPTY CHECK
-    // =========================
+    const questions = await getOrGenerateQuestions({
+      subject: cleanSubject,
+      topic: cleanTopic,
+      limit: cleanLimit
+    });
 
     if (!questions || questions.length === 0) {
-      return res.status(404).json({
-        message: "No quiz questions found"
-      });
+      return res.status(404).json({ message: "No quiz questions found" });
     }
 
-    // =========================
-    // RETURN QUESTIONS
-    // =========================
-
-    res.status(200).json(questions);
-
-  } catch (err) {
-
-    console.error(
-      "AI QUIZ ERROR:",
-      err.message
-    );
-
-    res.status(500).json({
-      message: "AI quiz generation failed",
-      error:
-        process.env.NODE_ENV === "development"
-          ? err.message
-          : undefined
-    });
-  }
-};
-
-
-export const getAdaptiveQuiz = async (req, res) => {
-  try {
-    const { username = "Guest", limit = 10 } = req.query;
-
-    // 🔐 check AI usage
-    checkLimit(username);
-
-    const questions = await generateAdaptiveQuiz({
-      username,
-      limit: Number(limit)
-    });
-
-    // 🚫 hide answers
     const safe = questions.map(q => ({
       id: q._id,
+      _id: q._id,
       subject: q.subject,
       topic: q.topic,
       question: q.question,
       options: q.options
     }));
 
+    res.status(200).json(safe);
+
+  } catch (err) {
+    console.error("AI QUIZ ERROR:", err.message);
+    res.status(500).json({
+      message: "AI quiz generation failed",
+      error: process.env.NODE_ENV === "development" ? err.message : undefined
+    });
+  }
+};
+
+
+// =====================================================
+// ADAPTIVE QUIZ (weighted toward the user's weak topics)
+// =====================================================
+export const getAdaptiveQuiz = async (req, res) => {
+  try {
+    const { limit = 10 } = req.query;
+    const identity = identityFromReq(req);
+
+    checkLimit(String(identity.userId));
+
+    const questions = await generateAdaptiveQuiz({
+      identity,
+      limit: Number(limit)
+    });
+
+    const safe = questions
+      .filter(Boolean)
+      .map(q => ({
+        id: q._id,
+        subject: q.subject,
+        topic: q.topic,
+        question: q.question,
+        options: q.options
+      }));
+
     res.json(safe);
 
   } catch (err) {
+    console.error("ADAPTIVE QUIZ ERROR:", err.message);
     res.status(500).json({ message: err.message });
   }
 };
 
 
-
+// =====================================================
+// USER ANALYTICS (per-topic performance for the logged-in user)
+// =====================================================
 export const getUserAnalytics = async (req, res) => {
   try {
-    const { username = "Guest" } = req.query;
+    const identity = identityFromReq(req);
 
-    const data = await TopicPerformance.find({ username });
+    const data = await TopicPerformance.find({ userId: identity.userId });
+
+    const overall = await QuizProgress.findOne({
+      userId: identity.userId,
+      topic: OVERALL_TOPIC
+    });
 
     const summary = data.map(t => ({
       subject: t.subject,
@@ -346,24 +254,41 @@ export const getUserAnalytics = async (req, res) => {
       accuracy: t.accuracy
     }));
 
-    res.json(summary);
+    res.json({
+      topics: summary,
+      overall: overall
+        ? {
+            xp: overall.xp,
+            level: overall.level,
+            streak: overall.streak,
+            attempts: overall.attempts,
+            correct: overall.correct,
+            score: overall.score
+          }
+        : { xp: 0, level: 1, streak: 0, attempts: 0, correct: 0, score: 0 }
+    });
 
   } catch (err) {
+    console.error("ANALYTICS ERROR:", err.message);
     res.status(500).json({ message: err.message });
   }
 };
 
 
+// =====================================================
+// XP LEADERBOARD (Pro)
+// =====================================================
 export const getLeaderboardXP = async (req, res) => {
   try {
     const leaders = await QuizProgress.aggregate([
+      { $match: { topic: OVERALL_TOPIC } },
       {
         $group: {
-          _id: "$username",
+          _id: "$userId",
+          username: { $first: "$username" },
           totalXP: { $max: "$xp" },
           level: { $max: "$level" },
           streak: { $max: "$streak" },
-          totalScore: { $sum: "$score" },
           totalAttempts: { $sum: "$attempts" },
           totalCorrect: { $sum: "$correct" }
         }
@@ -374,47 +299,37 @@ export const getLeaderboardXP = async (req, res) => {
             $cond: [
               { $eq: ["$totalAttempts", 0] },
               0,
-              {
-                $multiply: [
-                  { $divide: ["$totalCorrect", "$totalAttempts"] },
-                  100
-                ]
-              }
+              { $multiply: [{ $divide: ["$totalCorrect", "$totalAttempts"] }, 100] }
             ]
           }
         }
       },
-      {
-        $sort: {
-          totalXP: -1,
-          level: -1,
-          streak: -1
-        }
-      },
-      {
-        $limit: 20
-      }
+      { $sort: { totalXP: -1, level: -1, streak: -1 } },
+      { $limit: 20 }
     ]);
 
     const formatted = leaders.map((u, index) => ({
       rank: index + 1,
-      username: u._id,
+      username: u.username,
       xp: u.totalXP,
       level: u.level,
       streak: u.streak,
-      accuracy: Number(u.accuracy.toFixed(1))
+      accuracy: Number((u.accuracy || 0).toFixed(1))
     }));
 
     res.json(formatted);
 
   } catch (err) {
-    console.error(err);
+    console.error("XP LEADERBOARD ERROR:", err);
     res.status(500).json({ message: "Leaderboard error" });
   }
 };
 
 
-// 🎯 GET QUESTION (Adaptive)
+// =====================================================
+// FREE PRACTICE QUIZ (no login required — unchanged behaviour)
+// =====================================================
+
 export const getQuizQuestion = async (req, res) => {
   try {
     const { topic = "percentage", username = "Guest" } = req.query;
@@ -461,16 +376,10 @@ export const submitQuizAnswer = async (req, res) => {
 
     await user.save();
 
-    // 🔥 SOLUTION ENGINE (KEY FEATURE)
-    // 🔥 SOLUTION ENGINE (ALWAYS RUN)
     let solution = null;
 
     if (problem) {
-      console.log("🧠 Solving problem:", problem);
-
       const solved = solveMathProblem(problem);
-
-      console.log("🧠 Solver result:", solved);
 
       if (!solved.error) {
         solution = {
@@ -481,13 +390,12 @@ export const submitQuizAnswer = async (req, res) => {
       }
     }
 
-
     res.json({
       message: "Progress updated",
       score: user.score,
       streak: user.streak,
       attempts: user.attempts,
-      solution, // 🔥 NEW
+      solution,
     });
 
   } catch (err) {
@@ -499,6 +407,7 @@ export const submitQuizAnswer = async (req, res) => {
 export const getLeaderboard = async (req, res) => {
   try {
     const leaders = await QuizProgress.aggregate([
+      { $match: { topic: { $ne: OVERALL_TOPIC } } },
       {
         $group: {
           _id: "$username",
@@ -508,15 +417,10 @@ export const getLeaderboard = async (req, res) => {
           streak: { $max: "$streak" },
         },
       },
-      {
-        $sort: { totalScore: -1 },
-      },
-      {
-        $limit: 10,
-      },
+      { $sort: { totalScore: -1 } },
+      { $limit: 10 },
     ]);
 
-    // 🔥 Format clean response
     const formatted = leaders.map((u) => ({
       username: u._id,
       score: u.totalScore,
