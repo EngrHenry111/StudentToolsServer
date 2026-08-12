@@ -46,20 +46,48 @@ export const verifyPayment = async (req, res) => {
 };
 
 // One-off payment (₦5000 flat, no recurring billing)
-export const startPayment = async (req, res) => {
+// Must match your Paystack plan's amount exactly (in kobo, so ₦5,000 = 500000).
+// Paystack's /transaction/initialize requires "amount" even when a plan is
+// also supplied — leaving it out is what produces "Invalid amount sent".
+const PRO_PLAN_AMOUNT_KOBO = 5000 * 100;
+
+export const startSubscription = async (req, res) => {
   try {
-    const user = req.user; // full Mongoose doc, thanks to authUser
+    const user = req.user;
     const email = req.body.email || user.email;
 
-    const payment = await initializePayment(email, 5000, user._id);
+    if (!process.env.PAYSTACK_PLAN_CODE) {
+      return res.status(500).json({
+        message: "Subscription plan is not configured on the server"
+      });
+    }
+
+    const response = await axios.post(
+      "https://api.paystack.co/transaction/initialize",
+      {
+        email,
+        amount: PRO_PLAN_AMOUNT_KOBO,
+        plan: process.env.PAYSTACK_PLAN_CODE,
+        metadata: {
+          userId: user._id.toString()
+        }
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`
+        }
+      }
+    );
 
     res.json({
-      authorization_url: payment.authorization_url
+      authorization_url: response.data.data.authorization_url
     });
 
   } catch (err) {
-    console.error("START PAYMENT ERROR:", err.response?.data || err.message);
-    res.status(500).json({ message: err.response?.data?.message || err.message });
+    console.error("PAYSTACK SUBSCRIBE ERROR:", err.response?.data || err.message);
+    res.status(500).json({
+      message: err.response?.data?.message || err.message
+    });
   }
 };
 
