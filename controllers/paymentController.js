@@ -113,35 +113,56 @@ export const cancelSubscription = async (req, res) => {
   try {
     const user = req.user;
 
-    if (!user.subscriptionCode || !user.subscriptionEmailToken) {
+    let subscriptionCode = user.subscriptionCode;
+    let emailToken = user.subscriptionEmailToken;
+
+    // Fallback: if the subscription.create webhook hasn't populated these
+    // yet (can happen depending on webhook timing/order), look the
+    // subscription up directly from Paystack using the customer's email
+    // instead of failing outright.
+    if (!subscriptionCode || !emailToken) {
+      try {
+        const customerRes = await axios.get(
+          `https://api.paystack.co/customer/${encodeURIComponent(user.email)}`,
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`
+            }
+          }
+        );
+
+        const subs = customerRes.data?.data?.subscriptions || [];
+        const activeSub = subs.find(s => s.status === "active") || subs[0];
+
+        if (activeSub) {
+          subscriptionCode = activeSub.subscription_code;
+          emailToken = activeSub.email_token;
+
+          user.subscriptionCode = subscriptionCode;
+          user.subscriptionEmailToken = emailToken;
+        }
+      } catch (lookupErr) {
+        console.error("SUBSCRIPTION LOOKUP ERROR:", lookupErr.response?.data || lookupErr.message);
+      }
+    }
+
+    if (!subscriptionCode || !emailToken) {
       return res.status(400).json({
-        message: "No active subscription to cancel"
+        message: "No active subscription found for this account"
       });
     }
 
-    // Paystack requires the subscription code AND its email token
-    // (not the user's email address) to disable a subscription.
     await axios.post(
       "https://api.paystack.co/subscription/disable",
-      {
-        code: user.subscriptionCode,
-        token: user.subscriptionEmailToken
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`
-        }
-      }
+      { code: subscriptionCode, token: emailToken },
+      { headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` } }
     );
 
     user.isPremium = false;
     user.subscriptionStatus = "cancelled";
-
     await user.save();
 
-    res.json({
-      message: "Subscription cancelled successfully"
-    });
+    res.json({ message: "Subscription cancelled successfully" });
 
   } catch (err) {
     console.error("CANCEL SUBSCRIPTION ERROR:", err.response?.data || err.message);
