@@ -36,7 +36,24 @@ export const registerUser = async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
-    const exists = await User.findOne({ email });
+    if (!username || !email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+
+    // basic but effective email format check — catches things like
+    // "name@gmailcom" (missing dot) before they ever reach Paystack
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      return res.status(400).json({ message: "Please enter a valid email address" });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
+    }
+
+    const exists = await User.findOne({ email: cleanEmail });
     if (exists) {
       return res.status(400).json({ message: "User already exists" });
     }
@@ -46,8 +63,8 @@ export const registerUser = async (req, res) => {
     const verificationToken = generateVerificationToken();
 
     const user = await User.create({
-      username,
-      email,
+      username: username.trim(),
+      email: cleanEmail,
       password: hashed,
       verificationToken
     });
@@ -78,7 +95,13 @@ export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required" });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+
+    const user = await User.findOne({ email: cleanEmail });
 
     // if (!user || !user.isVerified) 
     if (!user){

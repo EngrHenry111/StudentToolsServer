@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import User from "../models/User.js";
 
 export const paystackWebhook = async (
@@ -6,6 +7,24 @@ export const paystackWebhook = async (
 ) => {
 
   try {
+
+    // 🔒 SECURITY: verify this request genuinely came from Paystack before
+    // trusting anything in it. Paystack signs every webhook with your
+    // secret key (HMAC SHA512 over the raw request body) and sends the
+    // result in the x-paystack-signature header. Without this check,
+    // anyone who discovers this URL could POST a fake "payment succeeded"
+    // event and grant themselves free Pro access.
+    const signature = req.headers["x-paystack-signature"];
+
+    const expectedSignature = crypto
+      .createHmac("sha512", process.env.PAYSTACK_SECRET_KEY)
+      .update(req.rawBody)
+      .digest("hex");
+
+    if (!signature || signature !== expectedSignature) {
+      console.warn("⚠️  Rejected webhook request with invalid Paystack signature");
+      return res.sendStatus(401);
+    }
 
     const event = req.body;
 

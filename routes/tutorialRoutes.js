@@ -16,11 +16,16 @@ import {
 } from "../controllers/tutorialController.js";
 
 import adminAuth from "../middleware/adminAuth.js"
-import { errorHandler } from "../middleware/errorMiddleware.js";
 
 const router = express.Router();
 
-router.post("/", createTutorial);
+// 🔒 SECURITY: creating, editing, and deleting tutorials must require an
+// authenticated admin. These were previously open to anyone on the
+// internet (create/update had no auth at all; delete had errorHandler
+// mistakenly placed in the middleware chain, which isn't how Express
+// error-handling middleware is meant to be used and made the auth check
+// unreliable).
+router.post("/", adminAuth, createTutorial);
 router.get("/", getTutorials);
 
 router.get("/search", searchTutorials);
@@ -37,10 +42,8 @@ router.get("/categories", getCategories);
 
 router.get("/topics/:category", getTopicsByCategory);
 
-// ADD THIS
-
-router.put("/:id", updateTutorial);
-router.delete("/:id", errorHandler, adminAuth, deleteTutorial); // if not already
+router.put("/:id", adminAuth, updateTutorial);
+router.delete("/:id", adminAuth, deleteTutorial);
 
 router.get("/preview/:id", getTutorialById);
 

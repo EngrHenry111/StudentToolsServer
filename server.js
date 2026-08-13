@@ -2,6 +2,8 @@ import dotenv from "dotenv";
 dotenv.config();
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 
 import connectDB from "./config/db.js";
 
@@ -23,6 +25,10 @@ connectDB();
 
 const app = express();
 
+// 🔒 SECURITY: sets sensible HTTP security headers (blocks clickjacking,
+// disables MIME-sniffing, etc.) with almost no downside.
+app.use(helmet());
+
 const allowedOrigins = [
   "http://localhost:5173",
   "https://studenttoolsng.com"
@@ -39,6 +45,16 @@ app.use(cors({
   credentials: true
 }));
 
+// 🔒 SECURITY: general backstop rate limit across the whole API, on top
+// of the stricter one on auth routes — protects things like AI quiz
+// generation from being hammered by a script (which costs you real
+// Groq API usage) and general abuse.
+app.use(rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false
+}));
 
 app.use(express.json());
 

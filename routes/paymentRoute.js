@@ -33,7 +33,13 @@ router.post(
 
 router.post(
   "/paystack/webhook",
-  express.json(),
+  // capture the raw body alongside parsing it — needed for HMAC
+  // signature verification, which must run over the exact original bytes
+  express.json({
+    verify: (req, res, buf) => {
+      req.rawBody = buf;
+    }
+  }),
   paystackWebhook
 );
 

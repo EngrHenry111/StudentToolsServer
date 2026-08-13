@@ -109,21 +109,36 @@ export const startSubscription = async (req, res) => {
   }
 };
 
+
 export const cancelSubscription = async (req, res) => {
   try {
     const user = req.user;
 
     let subscriptionCode = null;
     let emailToken = null;
+
+    // Always ask Paystack directly which subscription is ACTUALLY active
+    // right now, rather than trusting whatever code is cached locally.
+    // A locally stored code can go stale (e.g. a user cancels, then
+    // resubscribes — Paystack issues a brand-new subscription code, but
+    // our DB may still be holding the old, now-dead one if the
+    // subscription.create webhook didn't update it in time).
     let liveLookupFailed = false;
 
     try {
       const customerRes = await axios.get(
         `https://api.paystack.co/customer/${encodeURIComponent(user.email)}`,
-        { headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` } }
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`
+          }
+        }
       );
 
       const subs = customerRes.data?.data?.subscriptions || [];
+
+      // Prefer a genuinely active subscription; if several exist, take
+      // the most recently created one.
       const activeSubs = subs.filter(s => s.status === "active");
       const activeSub = activeSubs.length
         ? activeSubs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0]
@@ -138,41 +153,61 @@ export const cancelSubscription = async (req, res) => {
       console.error("SUBSCRIPTION LOOKUP ERROR:", lookupErr.response?.data || lookupErr.message);
     }
 
+    // Only fall back to the locally cached code if the live lookup itself
+    // couldn't be performed (e.g. Paystack API unreachable) — not if it
+    // succeeded and simply found nothing active.
     if (!subscriptionCode && liveLookupFailed) {
       subscriptionCode = user.subscriptionCode;
       emailToken = user.subscriptionEmailToken;
     }
 
     if (!subscriptionCode || !emailToken) {
+      // Nothing active on Paystack's side — make sure our own record
+      // reflects that too, so the UI doesn't keep showing "active".
       if (user.isPremium || user.subscriptionStatus === "active") {
         user.isPremium = false;
         user.subscriptionStatus = "cancelled";
         await user.save();
       }
-      return res.status(400).json({ message: "No active subscription found for this account" });
+
+      return res.status(400).json({
+        message: "No active subscription found for this account"
+      });
     }
 
+    // backfill so future cancels can use this as a last-resort fallback
     user.subscriptionCode = subscriptionCode;
     user.subscriptionEmailToken = emailToken;
 
+    // Paystack requires the subscription code AND its email token
+    // (not the user's email address) to disable a subscription.
     await axios.post(
       "https://api.paystack.co/subscription/disable",
-      { code: subscriptionCode, token: emailToken },
-      { headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` } }
+      {
+        code: subscriptionCode,
+        token: emailToken
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`
+        }
+      }
     );
 
     user.isPremium = false;
     user.subscriptionStatus = "cancelled";
+
     await user.save();
 
-    res.json({ message: "Subscription cancelled successfully" });
+    res.json({
+      message: "Subscription cancelled successfully"
+    });
 
   } catch (err) {
     console.error("CANCEL SUBSCRIPTION ERROR:", err.response?.data || err.message);
     res.status(500).json({ message: err.response?.data?.message || err.message });
   }
 };
-
 
 
 export const getBillingInfo = async (req, res) => {
