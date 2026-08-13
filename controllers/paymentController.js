@@ -113,44 +113,47 @@ export const cancelSubscription = async (req, res) => {
   try {
     const user = req.user;
 
-    let subscriptionCode = user.subscriptionCode;
-    let emailToken = user.subscriptionEmailToken;
+    let subscriptionCode = null;
+    let emailToken = null;
+    let liveLookupFailed = false;
 
-    // Fallback: if the subscription.create webhook hasn't populated these
-    // yet (can happen depending on webhook timing/order), look the
-    // subscription up directly from Paystack using the customer's email
-    // instead of failing outright.
-    if (!subscriptionCode || !emailToken) {
-      try {
-        const customerRes = await axios.get(
-          `https://api.paystack.co/customer/${encodeURIComponent(user.email)}`,
-          {
-            headers: {
-              Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`
-            }
-          }
-        );
+    try {
+      const customerRes = await axios.get(
+        `https://api.paystack.co/customer/${encodeURIComponent(user.email)}`,
+        { headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` } }
+      );
 
-        const subs = customerRes.data?.data?.subscriptions || [];
-        const activeSub = subs.find(s => s.status === "active") || subs[0];
+      const subs = customerRes.data?.data?.subscriptions || [];
+      const activeSubs = subs.filter(s => s.status === "active");
+      const activeSub = activeSubs.length
+        ? activeSubs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0]
+        : null;
 
-        if (activeSub) {
-          subscriptionCode = activeSub.subscription_code;
-          emailToken = activeSub.email_token;
-
-          user.subscriptionCode = subscriptionCode;
-          user.subscriptionEmailToken = emailToken;
-        }
-      } catch (lookupErr) {
-        console.error("SUBSCRIPTION LOOKUP ERROR:", lookupErr.response?.data || lookupErr.message);
+      if (activeSub) {
+        subscriptionCode = activeSub.subscription_code;
+        emailToken = activeSub.email_token;
       }
+    } catch (lookupErr) {
+      liveLookupFailed = true;
+      console.error("SUBSCRIPTION LOOKUP ERROR:", lookupErr.response?.data || lookupErr.message);
+    }
+
+    if (!subscriptionCode && liveLookupFailed) {
+      subscriptionCode = user.subscriptionCode;
+      emailToken = user.subscriptionEmailToken;
     }
 
     if (!subscriptionCode || !emailToken) {
-      return res.status(400).json({
-        message: "No active subscription found for this account"
-      });
+      if (user.isPremium || user.subscriptionStatus === "active") {
+        user.isPremium = false;
+        user.subscriptionStatus = "cancelled";
+        await user.save();
+      }
+      return res.status(400).json({ message: "No active subscription found for this account" });
     }
+
+    user.subscriptionCode = subscriptionCode;
+    user.subscriptionEmailToken = emailToken;
 
     await axios.post(
       "https://api.paystack.co/subscription/disable",
@@ -169,6 +172,7 @@ export const cancelSubscription = async (req, res) => {
     res.status(500).json({ message: err.response?.data?.message || err.message });
   }
 };
+
 
 
 export const getBillingInfo = async (req, res) => {
