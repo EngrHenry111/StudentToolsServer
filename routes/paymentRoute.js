@@ -5,7 +5,8 @@ import {
   verifyPayment,
   startSubscription,
   cancelSubscription,
-  getBillingInfo
+  getBillingInfo,
+  getLaunchOfferStatus
 } from "../controllers/paymentController.js";
 
 import authUser from "../middleware/authUser.js";
@@ -53,6 +54,11 @@ router.get(
   "/billing",
   authUser,
   getBillingInfo
+);
+
+router.get(
+  "/launch-offer",
+  getLaunchOfferStatus
 );
 
 export default router;

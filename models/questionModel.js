@@ -11,7 +11,20 @@ const questionSchema = new mongoose.Schema({
 
   source: {
     type: String,
-    default: "ai"
+    default: "ai" // "ai" | "curated"
+  },
+
+  // Only meaningful when source === "curated" — which real exam body this
+  // question is styled after, and optionally the year it's modeled on.
+  examBody: {
+    type: String,
+    enum: ["WAEC", "JAMB", "NECO", null],
+    default: null
+  },
+
+  year: {
+    type: Number,
+    default: null
   },
 
   usageCount: {

@@ -45,6 +45,13 @@ subscriptionEmailToken: {
   default: null
 },
 
+// Prevents someone from cancelling and resubscribing repeatedly to keep
+// reusing the launch discount — once true, they always pay full price.
+usedLaunchOffer: {
+  type: Boolean,
+  default: false
+},
+
 subscriptionStatus: {
   type: String,
   default: "inactive" // active, cancelled

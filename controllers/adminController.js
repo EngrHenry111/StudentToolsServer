@@ -1,5 +1,6 @@
 import Admin from "../models/adminModel.js";
 import Tutorial from "../models/tutorialModel.js";
+import Question from "../models/questionModel.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -78,4 +79,72 @@ export const getAdminStats = async (req, res) => {
    message: error.message
   });
  }
+};
+
+// =====================================================
+// CURATED QUESTIONS (WAEC/JAMB-style bank) — admin management
+// =====================================================
+
+export const addCuratedQuestion = async (req, res) => {
+  try {
+    const { subject, topic, examBody, question, options, correctAnswer, explanation, difficulty, year } = req.body;
+
+    if (!subject || !topic || !question || !Array.isArray(options) || options.length !== 4 || !correctAnswer) {
+      return res.status(400).json({ message: "subject, topic, question, 4 options, and correctAnswer are required" });
+    }
+
+    if (!options.includes(correctAnswer)) {
+      return res.status(400).json({ message: "correctAnswer must exactly match one of the 4 options" });
+    }
+
+    const saved = await Question.create({
+      subject,
+      topic,
+      examBody: examBody || null,
+      year: year || null,
+      question,
+      options,
+      correctAnswer,
+      explanation: explanation || "",
+      difficulty: difficulty || "medium",
+      source: "curated"
+    });
+
+    res.status(201).json(saved);
+
+  } catch (error) {
+    console.error("ADD CURATED QUESTION ERROR:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const listCuratedQuestions = async (req, res) => {
+  try {
+    const { subject, examBody } = req.query;
+
+    const query = { source: "curated" };
+    if (subject) query.subject = subject;
+    if (examBody) query.examBody = examBody;
+
+    const questions = await Question.find(query).sort({ createdAt: -1 });
+    res.json(questions);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const deleteCuratedQuestion = async (req, res) => {
+  try {
+    const deleted = await Question.findOneAndDelete({ _id: req.params.id, source: "curated" });
+
+    if (!deleted) {
+      return res.status(404).json({ message: "Curated question not found" });
+    }
+
+    res.json({ message: "Deleted" });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };

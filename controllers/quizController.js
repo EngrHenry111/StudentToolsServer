@@ -149,6 +149,48 @@ export const submitAIQuiz = async (req, res) => {
 
 
 // =====================================================
+// PAST QUESTIONS (curated, WAEC/JAMB-style bank)
+// =====================================================
+export const getPastQuestions = async (req, res) => {
+  try {
+    const { subject, topic, examBody, limit = 10 } = req.query;
+
+    const query = { source: "curated" };
+    if (subject) query.subject = subject;
+    if (topic) query.topic = topic;
+    if (examBody) query.examBody = examBody;
+
+    // Random sample so repeated attempts don't always show the same order
+    const questions = await Question.aggregate([
+      { $match: query },
+      { $sample: { size: Number(limit) } }
+    ]);
+
+    if (!questions || questions.length === 0) {
+      return res.status(404).json({
+        message: "No curated questions found for that selection yet — more are being added regularly."
+      });
+    }
+
+    const safe = questions.map(q => ({
+      id: q._id,
+      subject: q.subject,
+      topic: q.topic,
+      examBody: q.examBody,
+      question: q.question,
+      options: q.options
+    }));
+
+    res.json(safe);
+
+  } catch (err) {
+    console.error("PAST QUESTIONS ERROR:", err.message);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+// =====================================================
 // AI QUIZ (single subject/topic, AI-generated, cached in DB)
 // =====================================================
 export const getAIQuiz = async (req, res) => {
