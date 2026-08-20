@@ -5,6 +5,87 @@ const groq = new OpenAI({
   baseURL: "https://api.groq.com/openai/v1"
 });
 
+// Subjects where the model is most prone to real computational errors
+// (wrong algebra, invented roots, unsolvable equations presented as
+// solvable) — these get an extra independent verification pass before
+// a question is accepted. Less numeric subjects skip this to save on
+// API calls/latency, since the failure mode there is more about
+// opinion/style than a checkable right-or-wrong answer.
+const VERIFY_SUBJECTS = new Set([
+  "mathematics", "physics", "chemistry", "financialAccounting",
+  "biology", "agriculturalScience", "computerScience", "economics"
+]);
+
+// Independently re-solves a single question and confirms, corrects, or
+// rejects the claimed answer. This catches exactly the failure mode
+// reported by real users: a question generated with a wrong or even
+// unsolvable "correct answer" (e.g. an equation with no solution, or a
+// quadratic's roots misremembered) — a single generation pass has no
+// way to catch its own mistakes, so this asks the model to check its
+// work independently, the same way a teacher marking a test would.
+const verifyQuestion = async (q, subject) => {
+  const verifyPrompt = `
+You are a strict, independent WAEC/JAMB examiner checking a colleague's work.
+You did NOT write this question — verify it from scratch.
+
+Subject: ${subject}
+Question: ${q.question}
+Options: ${JSON.stringify(q.options)}
+Claimed correct answer: ${q.correctAnswer}
+
+Solve the question yourself, independently, step by step in your head.
+Then respond with ONLY this JSON (no markdown, no extra text):
+
+{
+  "valid": true or false,
+  "correctOption": "the exact text of the option you have determined is correct, or null if the question is flawed/unsolvable/has no correct option among those given",
+  "reason": "one short sentence explaining your finding"
+}
+
+Set "valid" to false if: the question has no solution, more than one option
+could be correct, none of the options are correct, or the question is
+ambiguous or malformed.
+`;
+
+  try {
+    const completion = await groq.chat.completions.create({
+      model: "openai/gpt-oss-20b",
+      messages: [
+        { role: "system", content: "Return ONLY valid JSON. Be strict and skeptical." },
+        { role: "user", content: verifyPrompt }
+      ]
+    });
+
+    const raw = completion.choices[0].message.content
+      .replace(/```json|```/g, "")
+      .trim();
+
+    const start = raw.indexOf("{");
+    const end = raw.lastIndexOf("}");
+    if (start === -1 || end === -1) return { valid: false };
+
+    const result = JSON.parse(raw.substring(start, end + 1));
+
+    if (!result.valid) return { valid: false, reason: result.reason };
+
+    // The verifier must have landed on one of the actual options offered —
+    // if it names something outside that set, treat it as a failed check
+    // rather than trusting an answer that doesn't even match a choice.
+    if (!q.options.includes(result.correctOption)) {
+      return { valid: false, reason: "Verifier's answer didn't match any option" };
+    }
+
+    return { valid: true, correctOption: result.correctOption };
+
+  } catch (err) {
+    console.error("VERIFY QUESTION ERROR:", err.message);
+    // If verification itself fails (network/API issue), don't silently
+    // trust an unverified question for a subject we know needs checking —
+    // safer to drop it and regenerate next time than risk a wrong answer.
+    return { valid: false, reason: "verification call failed" };
+  }
+};
+
 export const generateAIQuestions = async ({ subject, topic, count }) => {
 
   const prompt = `
@@ -139,6 +220,34 @@ parsed = parsed.filter(q => {
     q.options.every(opt => opt.length > 1)
   );
 });
+
+// 🔍 INDEPENDENT VERIFICATION PASS (calculation-heavy subjects only)
+// Re-solves each question from scratch and either confirms it, silently
+// corrects the answer if the verifier finds a different valid option, or
+// drops the question entirely if it turns out to be wrong/unsolvable —
+// so a broken question never reaches a student in the first place.
+if (VERIFY_SUBJECTS.has(subject)) {
+  const verified = [];
+
+  for (const q of parsed) {
+    const result = await verifyQuestion(q, subject);
+
+    if (!result.valid) {
+      console.warn(`DROPPED unverifiable question ("${subject}/${topic}"): ${result.reason || "failed verification"}`);
+      continue;
+    }
+
+    verified.push({
+      ...q,
+      // self-heal: if the verifier landed on a different (but still
+      // option-matching) answer than the original generation, trust
+      // the independent check over the first pass.
+      correctAnswer: result.correctOption
+    });
+  }
+
+  parsed = verified;
+}
 
   return parsed.map(q => ({
     subject,
