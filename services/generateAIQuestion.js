@@ -58,7 +58,9 @@ FORMAT:
   const callAI = async (retries = 2) => {
     try {
       const completion = await groq.chat.completions.create({
-        model: "llama-3.1-8b-instant",
+        // llama-3.1-8b-instant was deprecated and shut down by Groq on
+        // Aug 16, 2026. openai/gpt-oss-20b is Groq's official replacement.
+        model: "openai/gpt-oss-20b",
         messages: [
           { role: "system", content: "Return ONLY valid JSON." },
           { role: "user", content: prompt }

@@ -16,7 +16,9 @@ export const askAITutor = async (req, res) => {
 
     const completion = await groq.chat.completions.create({
 
-      model: "llama-3.1-8b-instant",
+      // llama-3.1-8b-instant was deprecated and shut down by Groq on
+      // Aug 16, 2026. openai/gpt-oss-20b is Groq's official replacement.
+      model: "openai/gpt-oss-20b",
       messages: [
         {
   
