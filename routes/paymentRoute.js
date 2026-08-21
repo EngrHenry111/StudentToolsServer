@@ -11,8 +11,6 @@ import {
 
 import authUser from "../middleware/authUser.js";
 
-import { paystackWebhook } from "../controllers/paystackwebhook.js";
-
 const router = express.Router();
 
 router.post(
@@ -32,17 +30,12 @@ router.post(
   startSubscription
 );
 
-router.post(
-  "/paystack/webhook",
-  // capture the raw body alongside parsing it — needed for HMAC
-  // signature verification, which must run over the exact original bytes
-  express.json({
-    verify: (req, res, buf) => {
-      req.rawBody = buf;
-    }
-  }),
-  paystackWebhook
-);
+// NOTE: the /paystack/webhook route is intentionally NOT defined here.
+// It's registered directly in server.js, before the global express.json()
+// parser, because it needs the raw request body for Paystack signature
+// verification — defining it here (after the global parser has already
+// run) is what caused the earlier bug where a successful payment never
+// activated the user's Pro access.
 
 router.post(
   "/paystack/cancel",

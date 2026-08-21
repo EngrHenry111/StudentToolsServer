@@ -20,6 +20,7 @@ import studyPlannerRoutes from "./routes/studyPlannerRoutes.js";
 
 import { errorHandler } from "./middleware/errorMiddleware.js";
 import paymentRoutes from "./routes/paymentRoute.js";
+import { paystackWebhook } from "./controllers/paystackwebhook.js";
 
 connectDB();
 
@@ -55,6 +56,23 @@ app.use(rateLimit({
   standardHeaders: true,
   legacyHeaders: false
 }));
+
+// 🔒 CRITICAL: the Paystack webhook needs the RAW, unparsed request body to
+// verify Paystack's signature (HMAC over the exact original bytes). It must
+// be registered here, BEFORE the global express.json() below — if the
+// global parser runs first, it consumes the body stream and req.rawBody
+// below is always undefined, which silently breaks signature verification
+// for every webhook call (this is exactly the bug that caused a real,
+// successful payment to never activate a user's Pro access).
+app.post(
+  "/api/payment/paystack/webhook",
+  express.json({
+    verify: (req, res, buf) => {
+      req.rawBody = buf;
+    }
+  }),
+  paystackWebhook
+);
 
 app.use(express.json());
 
