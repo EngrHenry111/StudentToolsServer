@@ -1,4 +1,4 @@
-import { initializePayment } from "../services/paystackService.js";
+import { initializePayment, NGN_PAYMENT_CHANNELS } from "../services/paystackService.js";
 
 import axios from "axios";
 import User from "../models/User.js";
@@ -137,6 +137,7 @@ export const startSubscription = async (req, res) => {
         email,
         amount,
         plan: planCode,
+        channels: NGN_PAYMENT_CHANNELS,
         metadata: {
           userId: user._id.toString()
         }
