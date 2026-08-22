@@ -1,8 +1,12 @@
 import Admin from "../models/adminModel.js";
 import Tutorial from "../models/tutorialModel.js";
 import Question from "../models/questionModel.js";
+import QuizProgress from "../models/QuizProgress.js";
+import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+
+const OVERALL_TOPIC = "__overall__";
 
 export const adminLogin = async (req,res)=>{
 
@@ -145,6 +149,71 @@ export const deleteCuratedQuestion = async (req, res) => {
     res.json({ message: "Deleted" });
 
   } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+// =====================================================
+// FULL DASHBOARD STATS (free quiz + Pro quiz + curated questions)
+// =====================================================
+
+export const getFullDashboardStats = async (req, res) => {
+  try {
+
+    // ---------- FREE PRACTICE QUIZ ----------
+    // Free quiz progress docs never use the OVERALL_TOPIC sentinel —
+    // that's reserved for authenticated Pro users' aggregate record.
+    const freeQuizDocs = await QuizProgress.find({
+      topic: { $ne: OVERALL_TOPIC },
+      userId: null
+    });
+
+    const freeQuiz = {
+      totalAttempts: freeQuizDocs.reduce((sum, d) => sum + (d.attempts || 0), 0),
+      totalCorrect: freeQuizDocs.reduce((sum, d) => sum + (d.correct || 0), 0),
+      uniquePlayers: new Set(freeQuizDocs.map(d => d.username)).size
+    };
+
+    // ---------- PRO QUIZ ----------
+    const totalUsers = await User.countDocuments();
+    const premiumUsers = await User.countDocuments({ isPremium: true });
+
+    const proProgressDocs = await QuizProgress.find({ topic: OVERALL_TOPIC });
+
+    const proQuiz = {
+      totalUsers,
+      premiumUsers,
+      freeUsers: totalUsers - premiumUsers,
+      totalXP: proProgressDocs.reduce((sum, d) => sum + (d.xp || 0), 0),
+      totalAttempts: proProgressDocs.reduce((sum, d) => sum + (d.attempts || 0), 0),
+      totalCorrect: proProgressDocs.reduce((sum, d) => sum + (d.correct || 0), 0),
+      aiGeneratedQuestions: await Question.countDocuments({ source: "ai" })
+    };
+
+    // ---------- CURATED QUESTIONS (WAEC/JAMB bank) ----------
+    const curatedTotal = await Question.countDocuments({ source: "curated" });
+
+    const bySubjectAgg = await Question.aggregate([
+      { $match: { source: "curated" } },
+      { $group: { _id: "$subject", count: { $sum: 1 } } }
+    ]);
+
+    const byExamBodyAgg = await Question.aggregate([
+      { $match: { source: "curated" } },
+      { $group: { _id: "$examBody", count: { $sum: 1 } } }
+    ]);
+
+    const curatedQuestions = {
+      total: curatedTotal,
+      bySubject: Object.fromEntries(bySubjectAgg.map(s => [s._id || "unknown", s.count])),
+      byExamBody: Object.fromEntries(byExamBodyAgg.map(s => [s._id || "unspecified", s.count]))
+    };
+
+    res.json({ freeQuiz, proQuiz, curatedQuestions });
+
+  } catch (error) {
+    console.error("FULL DASHBOARD STATS ERROR:", error);
     res.status(500).json({ message: error.message });
   }
 };
