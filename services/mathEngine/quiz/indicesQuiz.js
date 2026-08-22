@@ -1,9 +1,8 @@
-const rand = (min, max) =>
-  Math.floor(Math.random() * (max - min + 1)) + min;
+const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
-const generateIndicesQuestion = () => {
-  const base = rand(2, 5);
-  const power = rand(2, 4);
+const generateIndicesQuestion = (difficulty = "easy") => {
+  const base = difficulty === "hard" ? rand(2, 8) : difficulty === "medium" ? rand(2, 6) : rand(2, 5);
+  const power = difficulty === "hard" ? rand(2, 5) : rand(2, 4);
 
   const result = base ** power;
 
@@ -11,15 +10,16 @@ const generateIndicesQuestion = () => {
     question: `Evaluate ${base}^${power}`,
     answer: result,
     topic: "indices",
-    difficulty: "easy",
+    difficulty,
+    type: "number",
     solution: {
-      formula: "a^n = repeated multiplication",
+      formula: "a^n = a × a × ... (n times)",
       steps: [
-        `${base}^${power} = ${base} × ${base} ...`,
-        `= ${result}`,
+        `${base}^${power} = ${Array(power).fill(base).join(" × ")}`,
+        `= ${result}`
       ],
-      answer: result,
-    },
+      answer: result
+    }
   };
 };
 

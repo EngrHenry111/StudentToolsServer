@@ -374,15 +374,26 @@ export const getLeaderboardXP = async (req, res) => {
 
 export const getQuizQuestion = async (req, res) => {
   try {
-    const { topic = "percentage", username = "Guest" } = req.query;
+    const { topic = "percentage", username = "Guest", difficulty: requestedDifficulty } = req.query;
 
     let user = await QuizProgress.findOne({ username, topic });
 
-    let difficulty = "easy";
+    // Let the player's own dropdown choice win if they picked one —
+    // previously this was silently ignored and difficulty was always
+    // computed from streak, which made the difficulty selector do
+    // nothing at all from the user's point of view.
+    const validDifficulties = ["easy", "medium", "hard"];
+    let difficulty;
 
-    if (user) {
-      if (user.streak >= 5) difficulty = "hard";
-      else if (user.streak >= 2) difficulty = "medium";
+    if (validDifficulties.includes(requestedDifficulty)) {
+      difficulty = requestedDifficulty;
+    } else {
+      // fallback: adaptive difficulty based on streak
+      difficulty = "easy";
+      if (user) {
+        if (user.streak >= 5) difficulty = "hard";
+        else if (user.streak >= 2) difficulty = "medium";
+      }
     }
 
     const question = generateQuestion(topic, difficulty);
