@@ -1,31 +1,31 @@
 import { formatResponse } from "../../formatter.js";
+import { parseProfitLoss } from "./profitLossParser.js";
 
 const solveProfitLoss = (problem) => {
-  const text = problem.toLowerCase();
+  const parsed = parseProfitLoss(problem);
 
-  const cp = text.match(/cost.*?(\d+)/);
-  const sp = text.match(/selling.*?(\d+)/);
-
-  if (cp && sp) {
-    const cost = Number(cp[1]);
-    const sell = Number(sp[1]);
-
-    const profit = sell - cost;
-    const percent = (profit / cost) * 100;
-
-    return formatResponse({
-      topic: "Profit & Loss",
-      formula: "Profit = SP - CP",
-      steps: [
-        `SP = ${sell}, CP = ${cost}`,
-        `Profit = ${sell} - ${cost} = ${profit}`,
-        `Profit% = (${profit}/${cost}) × 100 = ${percent}%`,
-      ],
-      answer: `${percent}% profit`,
-    });
+  if (!parsed) {
+    return { error: "Unsupported profit/loss problem" };
   }
 
-  return { error: "Unsupported profit/loss problem" };
+  const { cost, selling } = parsed;
+  const diff = selling - cost;
+  const isProfit = diff >= 0;
+  const percent = cost !== 0 ? Math.abs((diff / cost) * 100) : 0;
+  const roundedPercent = Math.round(percent * 100) / 100;
+
+  return formatResponse({
+    topic: "Profit & Loss",
+    formula: isProfit ? "Profit = SP - CP" : "Loss = CP - SP",
+    steps: [
+      `CP (Cost Price) = ${cost}, SP (Selling Price) = ${selling}`,
+      isProfit
+        ? `Profit = ${selling} - ${cost} = ${diff}`
+        : `Loss = ${cost} - ${selling} = ${Math.abs(diff)}`,
+      `${isProfit ? "Profit" : "Loss"}% = (${Math.abs(diff)}/${cost}) × 100 = ${roundedPercent}%`,
+    ],
+    answer: `${roundedPercent}% ${isProfit ? "profit" : "loss"}`,
+  });
 };
 
 export default solveProfitLoss;

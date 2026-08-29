@@ -13,7 +13,15 @@ export const extractNumbers = (text) => {
   return matches ? matches.map(Number) : [];
 };
 
+// Previously this used plain text.includes(word), which is substring
+// matching — e.g. checking for "age" would also match "average" (which
+// contains "age" as a substring), silently misrouting average-of-numbers
+// problems to the age-word-problem solver. Now uses real word-boundary
+// matching so "age" only matches the actual word "age", not "average".
 export const hasWords = (text, words) => {
-  return words.some((word) => text.includes(word));
+  return words.some((word) => {
+    const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const pattern = new RegExp(`\\b${escaped}\\b`, "i");
+    return pattern.test(text);
+  });
 };
-

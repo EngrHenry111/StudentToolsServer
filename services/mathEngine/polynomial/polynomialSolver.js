@@ -11,7 +11,17 @@ const formatPolynomial = (expression) => {
     .replace(/\*/g, "")
     .replace(/\s+/g, "");
 
-  const terms = exp.match(/[+\-]?[^+\-]+/g) || [];
+  const rawTerms = exp.match(/[+\-]?[^+\-]+/g) || [];
+
+  // Bug fix: nerdamer's raw output can put terms in any order (e.g.
+  // "5*x+x^2+6" — linear term FIRST, so it never has a leading "+").
+  // When terms below get reordered into square→linear→constant, a term
+  // that started as "first" (no sign) ends up stuck in the MIDDLE with
+  // no separator, producing garbage like "x^25x+6" instead of
+  // "x^2+5x+6". Fix: every term gets an explicit sign BEFORE reordering.
+  const terms = rawTerms.map((t) =>
+    t.startsWith("+") || t.startsWith("-") ? t : `+${t}`
+  );
 
   const grouped = {
     square: [],

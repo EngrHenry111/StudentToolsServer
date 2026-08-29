@@ -1,144 +1,110 @@
 import { hasWords } from "../utils/nlp.js";
+
+// Detection order matters enormously here — this was previously checking
+// weak, generic signals FIRST (any percent sign anywhere, any letter "x"
+// anywhere) before strong, specific ones (age words, motion units,
+// geometry shapes). That meant, for example, "a boy is six years older
+// than his sister" got misrouted to algebra just because "six" contains
+// the letter "x". The fix: check the most specific, reliable signals
+// first, and only fall back to loose pattern-matching at the very end.
 const detectTopic = (problem) => {
   const text = problem.toLowerCase();
 
-  
-  // 🔹 1. STRICT PATTERNS (HIGH CONFIDENCE)
-  if (/\d+%/.test(text)) return "percentage";
-  if (/[0-9]*x/.test(text)) return "algebra";
-  if (/\d+\/\d+/.test(text)) return "fractions";
-  if (text.includes("ratio")) return "ratio";
-  if (text.includes("p=") || text.includes("interest")) return "si";
-  if (text.includes("n(")) return "set";
+  // ===================== 1. HIGH-CONFIDENCE, SPECIFIC WORD SIGNALS =====================
+  // These phrases are unlikely to appear in an unrelated problem, so they
+  // run before any loose symbol-based checks.
 
-  // 🔥 POLYNOMIAL
-   // 🔥 POLYNOMIAL / BRACKET EXPRESSIONS
-if (
+  if (hasWords(text, ["age", "older", "younger", "years old"]) &&
+      hasWords(text, ["mother", "son", "daughter", "father", "sister", "brother", "years", "old", "older", "younger"])) {
+    return "age";
+  }
 
-  // has variables
-  /[a-z]/i.test(text) &&
+  if (hasWords(text, ["profit", "loss", "cost price", "selling price", "cp", "sp"])) {
+    return "profitloss";
+  }
 
-  (
+  if (hasWords(text, ["mixture", "mixed", "alloy", "solution"]) ||
+      (text.includes("%") && hasWords(text, ["mix", "blend"]))) {
+    return "mixture";
+  }
 
-    // bracket multiplication
-    /\(.+\)\(.+\)/.test(text) ||
+  if (hasWords(text, ["force", "mass", "acceleration", "newton", "momentum"])) {
+    return "physics";
+  }
 
-    // powers
-    text.includes("^") ||
+  if (hasWords(text, ["area", "perimeter", "rectangle", "circle", "triangle", "square", "circumference", "radius", "volume"])) {
+    return "geometry";
+  }
 
-    // x terms
-    /\dx/.test(text) ||
+  if (hasWords(text, ["average", "mean"])) {
+    return "average";
+  }
 
-    // algebraic brackets
-    /\([a-z0-9+\- ]+\)/i.test(text)
+  if (hasWords(text, ["speed", "km/h", "mph", "velocity", "travels", "distance", "kilometres", "kilometers"]) &&
+      hasWords(text, ["time", "hour", "hours", "minute", "minutes", "speed", "distance"])) {
+    return "motion";
+  }
 
-  )
+  if (text.includes("n(") || hasWords(text, ["union", "intersection"])) {
+    return "set";
+  }
 
-) {
+  if (hasWords(text, ["interest"]) || text.includes("p=") || text.includes("principal")) {
+    return "si";
+  }
 
-  return "polynomial";
-}
+  if (hasWords(text, ["ratio", "divide in the ratio", "share in the ratio"])) {
+    return "ratio";
+  }
 
-  // 🔹 2. WORD-BASED DETECTION (NEW UPGRADE)
+  if (hasWords(text, ["power", "index", "indices", "exponent"]) || /\d\^\d/.test(text)) {
+    return "indices";
+  }
+
+  if (hasWords(text, ["simultaneous"]) ||
+      ((text.match(/=/g) || []).length >= 2 && hasWords(text, ["and"]))) {
+    return "simultaneous";
+  }
+
+  // ===================== 2. STRUCTURAL / SYMBOLIC PATTERNS =====================
+  // These are checked after word-based signals, since symbols alone are
+  // more ambiguous (a percent sign can appear in a mixture or profit/loss
+  // problem too — those are now caught above, before this runs).
+
+  // Polynomial: genuine algebraic expression structure — bracket
+  // multiplication like (x+2)(x-3), or a variable raised to a power.
+  if (/\([a-z0-9+\- ]+\)\s*\([a-z0-9+\- ]+\)/i.test(text) || /[a-z]\^\d/i.test(text)) {
+    return "polynomial";
+  }
+
+  // Algebra: requires an actual equation structure (an "=" sign
+  // together with a variable letter — either standalone like "x = 5"
+  // or attached to a coefficient like "3x = 15"), OR explicit "solve"/
+  // "equation" wording. NOT just the presence of the letter "x"
+  // anywhere in the text (that was the original catastrophic bug).
   if (
-    text.includes("increase") ||
-    text.includes("decrease") ||
-    text.includes("percent")
-  ) return "percentage";
+    (text.includes("=") && /[a-z]/i.test(text)) ||
+    hasWords(text, ["solve for x", "solve for y", "equation"])
+  ) {
+    return "algebra";
+  }
 
-  if (
-    text.includes("solve for x") ||
-    text.includes("equation")
-  ) return "algebra";
+  if (hasWords(text, ["increase", "decrease", "percent", "percentage"]) || /\d+\s*%/.test(text)) {
+    return "percentage";
+  }
 
-  if (
-    text.includes("share") ||
-    text.includes("divide in ratio")
-  ) return "ratio";
+  // Fractions: either an explicit "a/b [op] c/d" structural pattern
+  // (unambiguous on its own — this exact shape doesn't occur by
+  // accident in other topics), or a bare "a/b" together with wording
+  // that confirms it's meant as a fraction operation.
+  if (/\b\d+\/\d+\s*[+\-*]\s*\d+\/\d+\b/.test(text)) {
+    return "fractions";
+  }
+  if (/\b\d+\/\d+\b/.test(text) && hasWords(text, ["fraction", "of", "add", "sum", "plus", "minus", "subtract"])) {
+    return "fractions";
+  }
 
-  // 🔥 NEW: MOTION / PHYSICS
-
-  if (
-    text.includes("km/h") ||
-    text.includes("speed") ||
-    text.includes("distance") ||
-    text.includes("time") ||
-    text.includes("travels")
-    
-  ) return "motion";
-
-  // 🔥 AREA & PERIMETER
-
-if (hasWords(text, ["area", "perimeter", "rectangle", "circle", "triangle" ]))
-  return "geometry";
-
-// 🔥 AGE PROBLEMS
-if (hasWords(text, ["age", "older", "younger", "mother", "son", "daughter"]))
-  return "age";
-
-
-// 🔥 PROFIT & LOSS
-if (
-  text.includes("profit") ||
-  text.includes("loss") ||
-  text.includes("cost price") ||
-  text.includes("selling price")
-) return "profitloss";
-
-// 🔥 MIXTURE
-if (
-  text.includes("mix") ||
-  text.includes("mixture") ||
-  (text.includes("%") && text.includes("and"))
-) {
-  return "mixture";
-}
-// if (
-//   text.includes("mixture") ||
-//   text.includes("concentration") ||
-//   text.includes("solution")
-// ) return "mixture";
-
-// 🔥 PHYSICS
-if (
-  text.includes("force") ||
-  text.includes("mass") ||
-  text.includes("acceleration") ||
-  text.includes("m=") ||
-  text.includes("a=")
-
-  
-) return "physics";
-
-// if (hasWords(text, ["force", "mass", "acceleration", "velocity"]))
-//   return "physics";
-
-
-
-// 🔥 AVERAGE
-if (hasWords(text, ["average", "mean"]))
-  return "average";
-
-// 🔥 INDICES
-if (
-  text.includes("^") ||
-  text.includes("power") ||
-  text.includes("index") ||
-  text.includes("indices")
-) return "indices";
-
-// 🔥 SPEED (alias of motion)
-if (
-  text.includes("speed") ||
-  text.includes("distance") ||
-  text.includes("time") ||
-  text.includes()
-) return "motion";
-
-if (hasWords(text, ["speed", "km", "time", "distance", "km/h"]))
-  return "speed";
-
-  // 🔹 3. FALLBACK
+  // ===================== 3. FALLBACK =====================
   return "general";
 };
 

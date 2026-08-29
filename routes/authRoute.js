@@ -6,7 +6,10 @@ import {
   logoutUser,
   refreshAccessToken,
   verifyEmail,
-  getMe
+  getMe,
+  googleAuth,
+  forgotPassword,
+  resetPassword
 } from "../controllers/authController.js";
 import authUser from "../middleware/authUser.js";
 
@@ -23,11 +26,25 @@ const authLimiter = rateLimit({
   legacyHeaders: false
 });
 
+// Same limiter reused for password-reset requests specifically, so it
+// can't be used to spam someone's inbox with reset emails either.
+const resetLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { message: "Too many requests. Please try again in a few minutes." },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
 router.post("/register", authLimiter, registerUser);
 router.post("/login", authLimiter, loginUser);
+router.post("/google", authLimiter, googleAuth);
 router.post("/logout", logoutUser);
 router.post("/refresh", authLimiter, refreshAccessToken);
 router.get("/verify/:token", verifyEmail);
 router.get("/me", authUser, getMe);
+
+router.post("/forgot-password", resetLimiter, forgotPassword);
+router.post("/reset-password/:token", resetLimiter, resetPassword);
 
 export default router;

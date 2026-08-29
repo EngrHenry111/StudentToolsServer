@@ -15,6 +15,8 @@ import adminRoutes from "./routes/adminRoutes.js";
 import sitemapRoutes from "./routes/sitemapRoutes.js";
 import mathRoutes from "./routes/mathRoutes.js";
 import quizRoutes from "./routes/quizRoutes.js";
+import institutionRoutes from "./routes/institutionRoutes.js";
+import materialRoutes from "./routes/materialRoutes.js";
 import authRoutes from "./routes/authRoute.js";
 import studyPlannerRoutes from "./routes/studyPlannerRoutes.js";
 
@@ -92,6 +94,10 @@ app.use("/api/admin",adminRoutes);
 app.use("/api/math", mathRoutes);
 
 app.use("/api/quiz", quizRoutes);
+
+app.use("/api/institutions", institutionRoutes);
+
+app.use("/api/materials", materialRoutes);
 
 app.use("/api/sitemap", sitemapRoutes);
 

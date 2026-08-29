@@ -31,6 +31,17 @@ const solveSpeed = (problem) => {
     ];
   }
 
+  if (parsed.type === "time") {
+    answer = parsed.distance / parsed.speed;
+
+    steps = [
+      `Formula: Time = Distance / Speed`,
+      `Distance = ${parsed.distance}`,
+      `Speed = ${parsed.speed}`,
+      `${parsed.distance} / ${parsed.speed} = ${answer}`,
+    ];
+  }
+
   return formatResponse({
     topic: "Speed",
     formula: "Speed = Distance / Time",

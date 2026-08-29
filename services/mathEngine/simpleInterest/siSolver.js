@@ -1,19 +1,36 @@
 import { formatResponse } from "../../formatter.js";
 
+// Previously only accepted the literal symbolic format "p=1000 r=5 t=2"
+// — a real sentence like "Find the simple interest on 1000 at 5% for 2
+// years" has none of those markers and never matched at all. Fix: try
+// natural-language extraction (principal after "on"/"of", rate before
+// "%", time before "year(s)") before falling back to the p=/r=/t= form.
 const solveSI = (problem) => {
   try {
-    // 🔥 Normalize
-    const clean = problem.toLowerCase().replace(/\s/g, "");
+    const text = problem.toLowerCase();
 
-    const match = clean.match(/p=?(\d+).*r=?(\d+).*t=?(\d+)/);
+    let P, R, T;
 
-    if (!match) {
-      return { error: "Invalid SI format. Use p=1000 r=5 t=2" };
+    // Natural language: "...1000 at 5% for 2 years"
+    const principalMatch = text.match(/(?:on|of)\s+(\d+(?:\.\d+)?)/) || text.match(/(\d+(?:\.\d+)?)/);
+    const rateMatch = text.match(/(\d+(?:\.\d+)?)\s*%/);
+    const timeMatch = text.match(/(\d+(?:\.\d+)?)\s*(?:years?|yrs?)/);
+
+    if (principalMatch && rateMatch && timeMatch) {
+      P = Number(principalMatch[1]);
+      R = Number(rateMatch[1]);
+      T = Number(timeMatch[1]);
+    } else {
+      // Fallback: symbolic p=.../r=.../t=... format
+      const clean = text.replace(/\s/g, "");
+      const match = clean.match(/p=?(\d+).*r=?(\d+).*t=?(\d+)/);
+      if (!match) {
+        return { error: "Could not identify Principal, Rate, and Time in this problem" };
+      }
+      P = Number(match[1]);
+      R = Number(match[2]);
+      T = Number(match[3]);
     }
-
-    const P = Number(match[1]);
-    const R = Number(match[2]);
-    const T = Number(match[3]);
 
     const SI = (P * R * T) / 100;
     const total = P + SI;
@@ -38,32 +55,3 @@ const solveSI = (problem) => {
 };
 
 export default solveSI;
-
-
-
-// import { parseSI } from "./siParser..js";
-// import { formatResponse } from "../../formatter.js";
-
-// const solveSI = (problem) => {
-//   const parsed = parseSI(problem);
-
-//   if (!parsed) return { error: "Unsupported SI format" };
-
-//   const { P, R, T } = parsed;
-
-//   const SI = (P * R * T) / 100;
-
-//   return formatResponse({
-//     topic: "Simple Interest",
-//     formula: "SI = (P × R × T) / 100",
-//     steps: [
-//       `SI = (${P} × ${R} × ${T}) / 100`,
-//       `SI = ${SI}`,
-//     ],
-//     answer: SI,
-//     relatedTopics: ["Compound Interest"],
-//   });
-// };
-
-
-// export default solveSI;

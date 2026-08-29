@@ -1,14 +1,17 @@
 export const parsePhysics = (problem) => {
   const text = problem.toLowerCase();
 
-  // 🔹 Extract numbers WITH context
-  const massMatch = text.match(/mass\s*(is|=)?\s*(\d+(\.\d+)?)/);
-  const forceMatch = text.match(/force\s*(is|=)?\s*(\d+(\.\d+)?)/);
-  const accMatch = text.match(/acceleration\s*(is|=)?\s*(\d+(\.\d+)?)/);
+  // 🔹 Extract numbers WITH context — previously only accepted "mass is
+  // 10" or "mass=10" directly; real phrasing like "mass of 2kg" (with
+  // "of" as the connector) silently failed to match at all, since "of"
+  // wasn't one of the accepted connector words.
+  const massMatch = text.match(/mass\s*(?:is|=|of)?\s*(\d+(?:\.\d+)?)/);
+  const forceMatch = text.match(/force\s*(?:is|=|of)?\s*(\d+(?:\.\d+)?)/);
+  const accMatch = text.match(/acceleration\s*(?:is|=|of)?\s*(\d+(?:\.\d+)?)/);
 
-  const mass = massMatch ? parseFloat(massMatch[2]) : null;
-  const force = forceMatch ? parseFloat(forceMatch[2]) : null;
-  const acceleration = accMatch ? parseFloat(accMatch[2]) : null;
+  const mass = massMatch ? parseFloat(massMatch[1]) : null;
+  const force = forceMatch ? parseFloat(forceMatch[1]) : null;
+  const acceleration = accMatch ? parseFloat(accMatch[1]) : null;
 
   // 🔥 Detect what to find
   if (text.includes("find force") || text.includes("calculate force") || text.includes("what is force")) {

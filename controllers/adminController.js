@@ -217,3 +217,62 @@ export const getFullDashboardStats = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+
+// =====================================================
+// GRANT / REVOKE PRO ACCESS (manual comps, beta testers, etc.)
+// =====================================================
+// This bypasses Paystack entirely — there's no real subscription behind
+// it, so nothing here will ever auto-expire or auto-renew. Only this
+// same admin action (toggling it back) removes access again. If the
+// user later clicks "Cancel Subscription" themselves, they'll correctly
+// see "No active subscription found" since there's genuinely nothing on
+// Paystack's side tied to this — that's expected, not a bug.
+
+export const findUserByEmail = async (req, res) => {
+  try {
+    const { email } = req.query;
+    if (!email) {
+      return res.status(400).json({ message: "email query param is required" });
+    }
+
+    const user = await User.findOne({ email: email.trim().toLowerCase() })
+      .select("username email isPremium subscriptionStatus subscriptionCode");
+
+    if (!user) {
+      return res.status(404).json({ message: "No user found with that email" });
+    }
+
+    res.json(user);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const toggleUserPro = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.isPremium = !user.isPremium;
+    user.subscriptionStatus = user.isPremium ? "active" : "cancelled";
+
+    await user.save();
+
+    res.json({
+      message: user.isPremium ? "Pro access granted" : "Pro access revoked",
+      username: user.username,
+      email: user.email,
+      isPremium: user.isPremium,
+      subscriptionStatus: user.subscriptionStatus
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

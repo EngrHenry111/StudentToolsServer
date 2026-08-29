@@ -17,6 +17,8 @@ import {
   updateStreak
 } from "../services/gamificationService.js";
 
+import { generateQuizSummary } from "../services/quizSummaryGenerator.js";
+
 // Sentinel topic value used for a user's single "overall" Pro progress
 // document (aggregate XP/level/streak), so it never collides with the
 // per-topic documents used by the free practice quiz.
@@ -94,7 +96,9 @@ export const submitAIQuiz = async (req, res) => {
         selected,
         correctAnswer: q.correctAnswer,
         isCorrect,
-        explanation: q.explanation
+        explanation: q.explanation,
+        source: q.source,
+        conceptTag: q.conceptTag
       });
     }
 
@@ -130,6 +134,16 @@ export const submitAIQuiz = async (req, res) => {
     await updateTopicPerformance(identity, results);
     const weakTopics = await getWeakTopics(identity);
 
+    // If any submitted questions came from an uploaded material (the
+    // Material-Based Quiz Generator), generate a real synthesized study
+    // recap — not just the raw right/wrong list below, an actual "here's
+    // what to review" summary. Skipped entirely for ordinary subject
+    // quizzes, where it wouldn't add much beyond the existing weakTopics.
+    const hasMaterialQuestions = results.some((r) => r.source === "material");
+    const aiSummary = hasMaterialQuestions
+      ? await generateQuizSummary(results)
+      : null;
+
     res.json({
       totalQuestions: answers.length,
       score,
@@ -138,7 +152,8 @@ export const submitAIQuiz = async (req, res) => {
       level: progress.level,
       streak: progress.streak,
       results,
-      weakTopics
+      weakTopics,
+      aiSummary
     });
 
   } catch (err) {

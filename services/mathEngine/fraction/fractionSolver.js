@@ -4,15 +4,28 @@ import { formatResponse } from "../../formatter.js";
 
 // 🔥 Helper: GCD (for simplification)
 const gcd = (a, b) => {
+  a = Math.abs(a);
+  b = Math.abs(b);
   return b === 0 ? a : gcd(b, a % b);
 };
 
-// 🔥 Simplify fraction
+// 🔥 Simplify fraction — also normalizes sign so the denominator is
+// always positive (e.g. -3/-4 or 3/-4 both become -3/4, not a
+// double-negative or a negative denominator, which reads badly and
+// won't string-match a student's correctly-simplified answer).
 const simplify = (num, den) => {
-  const divisor = gcd(num, den);
+  const divisor = gcd(num, den) || 1;
+  let simplifiedNum = num / divisor;
+  let simplifiedDen = den / divisor;
+
+  if (simplifiedDen < 0) {
+    simplifiedNum = -simplifiedNum;
+    simplifiedDen = -simplifiedDen;
+  }
+
   return {
-    num: num / divisor,
-    den: den / divisor,
+    num: simplifiedNum,
+    den: simplifiedDen,
   };
 };
 
