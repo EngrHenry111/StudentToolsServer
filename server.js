@@ -17,6 +17,11 @@ import mathRoutes from "./routes/mathRoutes.js";
 import quizRoutes from "./routes/quizRoutes.js";
 import institutionRoutes from "./routes/institutionRoutes.js";
 import materialRoutes from "./routes/materialRoutes.js";
+import courseTutorRoutes from "./routes/courseTutorRoutes.js";
+import studyCoachRoutes from "./routes/studyCoachRoutes.js";
+import careerRoutes from "./routes/careerRoutes.js";
+import missionsRoutes from "./routes/missionsRoutes.js";
+import { startScheduledJobs } from "./jobs/streakReminderJob.js";
 import authRoutes from "./routes/authRoute.js";
 import studyPlannerRoutes from "./routes/studyPlannerRoutes.js";
 
@@ -99,6 +104,14 @@ app.use("/api/institutions", institutionRoutes);
 
 app.use("/api/materials", materialRoutes);
 
+app.use("/api/course-tutor", courseTutorRoutes);
+
+app.use("/api/study-coach", studyCoachRoutes);
+
+app.use("/api/career", careerRoutes);
+
+app.use("/api/missions", missionsRoutes);
+
 app.use("/api/sitemap", sitemapRoutes);
 
 app.use("/api/auth", authRoutes);
@@ -113,6 +126,7 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT,()=>{
  console.log(`Server running on port ${PORT}`);
+ startScheduledJobs();
 });
 
 console.log("OPENAI KEY:", process.env.OPENAI_API_KEY);
