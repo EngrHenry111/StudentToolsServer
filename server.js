@@ -33,6 +33,12 @@ connectDB();
 
 const app = express();
 
+// 🔒 Required when deployed behind a reverse proxy (Render, Heroku, etc.)
+// — without this, express-rate-limit can't reliably determine each
+// request's real client IP from the X-Forwarded-For header Render adds,
+// and throws a validation error on every rate-limited request.
+app.set("trust proxy", 1);
+
 // 🔒 SECURITY: sets sensible HTTP security headers (blocks clickjacking,
 // disables MIME-sniffing, etc.) with almost no downside.
 app.use(helmet());

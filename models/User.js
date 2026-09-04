@@ -161,7 +161,15 @@ campus: {
 // Auto-generates a unique, shareable referral code on first save —
 // based on the username so it's memorable, with a short random suffix
 // to guarantee uniqueness even for common usernames.
-userSchema.pre("save", async function (next) {
+//
+// 🔒 BUG FIX: this was previously declared as `async function (next)`
+// and called `next()` explicitly at the end. Mongoose does not pass a
+// real `next` callback to ASYNC pre-hooks — for async middleware, it
+// relies entirely on the returned Promise instead. Calling `next()`
+// here was calling something that didn't exist, throwing "next is not
+// a function" on every single save — which broke registration, Google
+// Sign-In, and anything else that ever calls user.save().
+userSchema.pre("save", async function () {
   if (!this.referralCode) {
     const base = (this.username || "student").replace(/[^a-zA-Z0-9]/g, "").slice(0, 12).toUpperCase();
     let candidate;
@@ -175,7 +183,7 @@ userSchema.pre("save", async function (next) {
 
     this.referralCode = candidate;
   }
-  next();
+  // no next() call — async pre-hooks resolve via their returned Promise
 });
 
 export default mongoose.model("User", userSchema);
