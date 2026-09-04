@@ -9,7 +9,9 @@ import {
   getMe,
   googleAuth,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  getReferralLeaderboard,
+  updateNotificationPreferences
 } from "../controllers/authController.js";
 import authUser from "../middleware/authUser.js";
 
@@ -46,5 +48,8 @@ router.get("/me", authUser, getMe);
 
 router.post("/forgot-password", resetLimiter, forgotPassword);
 router.post("/reset-password/:token", resetLimiter, resetPassword);
+
+router.get("/referral-leaderboard", getReferralLeaderboard);
+router.put("/notification-preferences", authUser, updateNotificationPreferences);
 
 export default router;

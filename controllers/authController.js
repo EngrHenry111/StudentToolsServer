@@ -1,14 +1,33 @@
 // 📍 /controllers/authController.js
 
 import User from "../models/User.js";
+import QuizProgress from "../models/QuizProgress.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { OAuth2Client } from "google-auth-library";
 import { generateVerificationToken } from "../services/emailService.js";
 import transporter from "../config/mailer.js";
+import { calculateLevel } from "../services/gamificationService.js";
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// Must match the same sentinel used in quizController.js — this is the
+// single "aggregate" progress doc per user (XP/level/streak), distinct
+// from per-topic practice records.
+const OVERALL_TOPIC = "__overall__";
+
+const awardXP = async (userId, username, amount) => {
+  let progress = await QuizProgress.findOne({ userId, topic: OVERALL_TOPIC });
+
+  if (!progress) {
+    progress = await QuizProgress.create({ userId, username, topic: OVERALL_TOPIC });
+  }
+
+  progress.xp += amount;
+  progress.level = calculateLevel(progress.xp);
+  await progress.save();
+};
 
 
 // ================================
@@ -39,7 +58,7 @@ const generateRefreshToken = (user) => {
 
 export const registerUser = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password, referralCode } = req.body;
 
     if (!username || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
@@ -63,6 +82,14 @@ export const registerUser = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
+    // Referral is entirely optional and never blocks registration if the
+    // code is invalid/expired — worst case, they just don't get credited
+    // to anyone, registration still succeeds normally.
+    let referrer = null;
+    if (referralCode && referralCode.trim()) {
+      referrer = await User.findOne({ referralCode: referralCode.trim().toUpperCase() });
+    }
+
     const hashed = await bcrypt.hash(password, 10);
 
     const verificationToken = generateVerificationToken();
@@ -71,8 +98,20 @@ export const registerUser = async (req, res) => {
       username: username.trim(),
       email: cleanEmail,
       password: hashed,
-      verificationToken
+      verificationToken,
+      referredBy: referrer ? referrer._id : null
     });
+
+    if (referrer) {
+      referrer.referralCount += 1;
+      await referrer.save();
+
+      // both sides get something — 50 XP to the referrer, a 20 XP
+      // welcome bonus to the new student, no expiring "free Pro time"
+      // that would need a background job to revoke later.
+      await awardXP(referrer._id, referrer.username, 50);
+      await awardXP(user._id, user.username, 20);
+    }
 
 //     console.log(`Verify link:
 // http://localhost:5000/api/auth/verify/${verificationToken}`);
@@ -226,7 +265,10 @@ export const getMe = async (req, res) => {
       nextBillingDate: user.nextBillingDate,
       aiQuizAttempts: user.aiQuizAttempts,
       authProvider: user.authProvider,
-      campus: user.campus
+      campus: user.campus,
+      referralCode: user.referralCode,
+      referralCount: user.referralCount,
+      notificationPreferences: user.notificationPreferences
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -474,6 +516,49 @@ export const resetPassword = async (req, res) => {
     await user.save();
 
     res.json({ message: "Password reset successfully. Please log in with your new password." });
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+// ================================
+// 🎁 REFERRAL LEADERBOARD
+// ================================
+export const getReferralLeaderboard = async (req, res) => {
+  try {
+    const topReferrers = await User.find({ referralCount: { $gt: 0 } })
+      .select("username referralCount")
+      .sort({ referralCount: -1 })
+      .limit(20);
+
+    res.json(topReferrers.map((u, i) => ({
+      rank: i + 1,
+      username: u.username,
+      referralCount: u.referralCount
+    })));
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+// ================================
+// 🔔 UPDATE NOTIFICATION PREFERENCES
+// ================================
+export const updateNotificationPreferences = async (req, res) => {
+  try {
+    const { streakReminders } = req.body;
+
+    if (typeof streakReminders === "boolean") {
+      req.user.notificationPreferences.streakReminders = streakReminders;
+    }
+
+    await req.user.save();
+
+    res.json({ notificationPreferences: req.user.notificationPreferences });
 
   } catch (err) {
     res.status(500).json({ message: err.message });

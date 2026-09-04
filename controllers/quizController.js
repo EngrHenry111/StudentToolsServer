@@ -18,6 +18,7 @@ import {
 } from "../services/gamificationService.js";
 
 import { generateQuizSummary } from "../services/quizSummaryGenerator.js";
+import { recordQuizActivity, getMissionsStatus } from "../services/dailyMissionsService.js";
 
 // Sentinel topic value used for a user's single "overall" Pro progress
 // document (aggregate XP/level/streak), so it never collides with the
@@ -144,16 +145,31 @@ export const submitAIQuiz = async (req, res) => {
       ? await generateQuizSummary(results)
       : null;
 
+    // Record today's activity for Daily Missions and auto-award any
+    // that were just completed as a result of this submission.
+    const correctCount = results.filter((r) => r.isCorrect).length;
+    const { newlyCompleted, totalXPEarned: missionXP } = await recordQuizActivity(
+      identity.userId,
+      { questionsAnswered: results.length, correctCount, totalQuestions: results.length }
+    );
+
+    if (missionXP > 0) {
+      progress.xp += missionXP;
+      progress.level = calculateLevel(progress.xp);
+      await progress.save();
+    }
+
     res.json({
       totalQuestions: answers.length,
       score,
-      xpEarned: earnedXP,
+      xpEarned: earnedXP + missionXP,
       totalXP: progress.xp,
       level: progress.level,
       streak: progress.streak,
       results,
       weakTopics,
-      aiSummary
+      aiSummary,
+      missionsCompleted: newlyCompleted
     });
 
   } catch (err) {

@@ -218,7 +218,6 @@ export const getFullDashboardStats = async (req, res) => {
   }
 };
 
-
 // =====================================================
 // GRANT / REVOKE PRO ACCESS (manual comps, beta testers, etc.)
 // =====================================================

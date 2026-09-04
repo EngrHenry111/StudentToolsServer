@@ -85,6 +85,34 @@ usedLaunchOffer: {
   default: false
 },
 
+// ---------------- REFERRAL SYSTEM ----------------
+// Deliberately rewards with XP, not temporary Pro time — a time-limited
+// Pro grant would need a background job to revoke it later, which is
+// infrastructure we've intentionally deferred. XP has no expiry to
+// manage and still gives a genuine, visible incentive via the
+// leaderboard.
+referralCode: {
+  type: String,
+  unique: true,
+  sparse: true
+},
+
+referredBy: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "User",
+  default: null
+},
+
+referralCount: {
+  type: Number,
+  default: 0
+},
+
+// ---------------- NOTIFICATION PREFERENCES ----------------
+notificationPreferences: {
+  streakReminders: { type: Boolean, default: true }
+},
+
 subscriptionStatus: {
   type: String,
   default: "inactive" // active, cancelled
@@ -129,5 +157,25 @@ campus: {
 },
 
 }, { timestamps: true });
+
+// Auto-generates a unique, shareable referral code on first save —
+// based on the username so it's memorable, with a short random suffix
+// to guarantee uniqueness even for common usernames.
+userSchema.pre("save", async function (next) {
+  if (!this.referralCode) {
+    const base = (this.username || "student").replace(/[^a-zA-Z0-9]/g, "").slice(0, 12).toUpperCase();
+    let candidate;
+    let exists = true;
+
+    while (exists) {
+      const suffix = Math.floor(1000 + Math.random() * 9000);
+      candidate = `${base}${suffix}`;
+      exists = await mongoose.models.User.findOne({ referralCode: candidate });
+    }
+
+    this.referralCode = candidate;
+  }
+  next();
+});
 
 export default mongoose.model("User", userSchema);
