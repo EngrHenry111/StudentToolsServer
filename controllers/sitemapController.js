@@ -1,87 +1,80 @@
 import { SitemapStream, streamToPromise } from "sitemap";
 import Tutorial from "../models/tutorialModel.js";
+import { tutorialCategoryList } from "../services/tutorialCategories.js";
+
+// Only these category listing pages have a real, working route (/:category)
+// and clean data. Everything else in the DB category/topic fields is
+// freeform and frequently malformed (full sentences, trailing punctuation,
+// "cgpa tutorials" style values), so we do NOT expose those as crawlable
+// URLs — they were the bulk of the "Discovered - currently not indexed"
+// soft-404s in Search Console.
+const INDEXABLE_CATEGORIES = tutorialCategoryList;
 
 export const generateSitemap = async (req, res) => {
  try {
 
-  const tutorials = await Tutorial.find();
+  // Only published tutorials belong in the sitemap. Drafts should never be
+  // advertised to Google.
+  const tutorials = await Tutorial.find({ status: "published" });
 
-  // ADD THIS AFTER: const tutorials = await Tutorial.find();
-
-const categoriesSet = new Set();
-const topicsSet = new Set();
-
-tutorials.forEach(t => {
-  if (t.category) {
-    categoriesSet.add(t.category.toLowerCase());
-  }
-
-  if (t.category && t.topic) {
-    topicsSet.add(`${t.category.toLowerCase()}/${t.topic.toLowerCase()}`);
-  }
-});
+  const presentCategories = new Set(
+   tutorials
+    .map(t => (t.category || "").toLowerCase().trim())
+    .filter(cat => INDEXABLE_CATEGORIES.includes(cat))
+  );
 
   const smStream = new SitemapStream({
    hostname: "https://studenttoolsng.com"
   });
 
   // Static pages (FIXED URLs)
-const staticPages = [
-  { url: "/", changefreq: "daily", priority: 1.0 },
+  const staticPages = [
+   { url: "/", changefreq: "daily", priority: 1.0 },
 
-  { url: "/tutorials", changefreq: "daily", priority: 0.9 },
+   { url: "/tutorials", changefreq: "daily", priority: 0.9 },
 
-  { url: "/cgpa-calculator", changefreq: "monthly", priority: 0.9 },
-  { url: "/waec-grade-calculator", changefreq: "monthly", priority: 0.9 },
-  { url: "/jamb-score-calculator", changefreq: "monthly", priority: 0.9 },
-  { url: "/gpa-class-calculator", changefreq: "monthly", priority: 0.8 },
+   { url: "/cgpa-calculator", changefreq: "monthly", priority: 0.9 },
+   { url: "/waec-grade-calculator", changefreq: "monthly", priority: 0.9 },
+   { url: "/jamb-score-calculator", changefreq: "monthly", priority: 0.9 },
+   { url: "/gpa-class-calculator", changefreq: "monthly", priority: 0.8 },
 
-  { url: "/study-planner", changefreq: "weekly", priority: 0.7 },
-  { url: "/scholarships", changefreq: "weekly", priority: 0.7 },
+   { url: "/study-planner", changefreq: "weekly", priority: 0.7 },
+   { url: "/scholarships", changefreq: "weekly", priority: 0.7 },
 
-  { url: "/admission-predictor", changefreq: "monthly", priority: 0.7 },
-  { url: "/ai-tutor", changefreq: "weekly", priority: 0.7 },
-  { url: "/tutorials/math-calculator", changefreq: "weekly", priority: 0.7 },
-  { url: "/quiz", changefreq: "weekly", priority: 0.7 },
+   { url: "/admission-predictor", changefreq: "monthly", priority: 0.7 },
+   { url: "/ai-tutor", changefreq: "weekly", priority: 0.7 },
+   { url: "/tutorials/math-calculator", changefreq: "weekly", priority: 0.7 },
+   { url: "/quiz", changefreq: "weekly", priority: 0.7 },
 
-  { url: "/about", changefreq: "yearly", priority: 0.5 },
-  { url: "/contact", changefreq: "yearly", priority: 0.5 },
-  { url: "/privacy-policy", changefreq: "yearly", priority: 0.3 },
-  { url: "/terms", changefreq: "yearly", priority: 0.3 },
-  { url: "/author", changefreq: "yearly", priority: 0.5 }
-];
+   { url: "/about", changefreq: "yearly", priority: 0.5 },
+   { url: "/contact", changefreq: "yearly", priority: 0.5 },
+   { url: "/privacy-policy", changefreq: "yearly", priority: 0.3 },
+   { url: "/terms", changefreq: "yearly", priority: 0.3 },
+   { url: "/author", changefreq: "yearly", priority: 0.5 }
+  ];
 
   staticPages.forEach((page) => {
-  smStream.write({
+   smStream.write({
     url: page.url,
     changefreq: page.changefreq,
     priority: page.priority,
     lastmod: new Date().toISOString()
+   });
   });
-});
 
-
-// ADD CATEGORY PAGES
-categoriesSet.forEach(cat => {
-  smStream.write({
-    url: `/tutorials/${cat}`,
+  // Category listing pages (whitelisted, clean data only)
+  presentCategories.forEach(cat => {
+   smStream.write({
+    url: `/${cat}`,
     changefreq: "weekly",
-    priority: 0.85
+    priority: 0.7
+   });
   });
-});
 
-
-// ADD TOPIC PAGES
-topicsSet.forEach(path => {
-  smStream.write({
-    url: `/tutorials/${path}`,
-    changefreq: "weekly",
-    priority: 0.8
-  });
-});
-
-  // Dynamic tutorials
+  // Individual published tutorial articles — the real content
   tutorials.forEach(tutorial => {
+   if (!tutorial.slug) return;
+
    smStream.write({
     url: `/tutorial/${tutorial.slug}`,
     changefreq: "weekly",

@@ -49,14 +49,21 @@ views:{
 
 tutorialSchema.pre("save", async function(){
 
- if(this.title){
+ // Generate the slug once, on creation (or if somehow missing). It must
+ // stay stable afterwards — it's the public URL. Regenerating on every
+ // save previously mutated it on each edit (the uniqueness check matched
+ // the document itself), breaking the canonical URL of published tutorials.
+ if(this.title && (this.isNew || !this.slug)){
 
   let slug = slugify(this.title,{
    lower:true,
    strict:true
   });
 
-  const existingTutorial = await mongoose.models.Tutorial.findOne({ slug });
+  const existingTutorial = await mongoose.models.Tutorial.findOne({
+   slug,
+   _id: { $ne: this._id }
+  });
 
   if(existingTutorial){
    slug = slug + "-" + Date.now();

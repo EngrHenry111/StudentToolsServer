@@ -1,4 +1,14 @@
 import Tutorial from "../models/tutorialModel.js";
+import {
+ normalizeTutorialContent,
+ htmlToPlainText
+} from "../utils/normalizeHtml.js";
+import {
+ isValidTutorialCategory,
+ isCleanTopicSlug,
+ topicSlug,
+ tutorialCategoryList
+} from "../services/tutorialCategories.js";
 
 /*
 Create Tutorial (minimal working version)
@@ -28,13 +38,25 @@ export const createTutorial = async (req, res) => {
    });
   }
 
-  // ✅ Normalize category & topic
+  // ✅ Normalize + validate category & topic against the shared taxonomy
   const category = req.body.category?.toLowerCase().trim();
-  const topic = req.body.topic?.toLowerCase().trim() || "general";
+  const topic = topicSlug(req.body.topic || "");
 
   if (!category) {
    return res.status(400).json({
     message: "Category is required"
+   });
+  }
+
+  if (!isValidTutorialCategory(category)) {
+   return res.status(400).json({
+    message: `Invalid category. Choose one of: ${tutorialCategoryList.join(", ")}`
+   });
+  }
+
+  if (!topic || !isCleanTopicSlug(topic)) {
+   return res.status(400).json({
+    message: "Topic is required (letters, numbers and hyphens only)"
    });
   }
 
@@ -45,12 +67,11 @@ export const createTutorial = async (req, res) => {
    });
   }
 
-  // ✅ Remove HTML tags helper
-  const stripHTML = (html) =>
-   html?.replace(/<[^>]+>/g, "") || "";
+  // ✅ Store real HTML, never entity-escaped markup
+  const content = normalizeTutorialContent(req.body.content);
 
   // ✅ Clean text (for fallback excerpt)
-  const cleanText = stripHTML(req.body.content);
+  const cleanText = htmlToPlainText(content);
 
   // ✅ EXCERPT LOGIC (BEST VERSION)
   const excerpt =
@@ -86,7 +107,7 @@ export const createTutorial = async (req, res) => {
   const tutorial = await Tutorial.create({
    title: cleanTitle,
    slug,
-   content: req.body.content,
+   content,
    category,
    topic,
    excerpt,
@@ -120,7 +141,9 @@ export const getTutorials = async (req, res) => {
   const { category, topic } = req.query;
 
   // ✅ BUILD FILTER OBJECT
-  const filter = {};
+  // This is a public endpoint — only ever expose published tutorials.
+  // Admin listing uses getAdminTutorials (auth-protected) instead.
+  const filter = { status: "published" };
 
   if (category) {
    filter.category = category.toLowerCase();
@@ -150,6 +173,23 @@ export const getTutorials = async (req, res) => {
 
 
 /*
+Admin: list every tutorial (drafts included). Auth-protected route.
+*/
+export const getAdminTutorials = async (req, res) => {
+ try {
+
+  const tutorials = await Tutorial.find()
+   .sort({ createdAt: -1 });
+
+  res.json({ tutorials });
+
+ } catch (error) {
+  res.status(500).json({ message: error.message });
+ }
+};
+
+
+/*
 Search Tutorials
 */
 export const searchTutorials = async (req,res)=>{
@@ -160,6 +200,7 @@ export const searchTutorials = async (req,res)=>{
 
   const tutorials = await Tutorial.find({
 
+   status: "published",
    $or:[
     {title:{$regex:q,$options:"i"}},
     {content:{$regex:q,$options:"i"}},
@@ -192,6 +233,7 @@ export const searchSuggestions = async (req,res)=>{
 
   const tutorials = await Tutorial.find({
 
+   status: "published",
    title:{$regex:q,$options:"i"}
 
   })
@@ -219,26 +261,14 @@ export const getTutorialBySlug = async (req, res) => {
 
  try {
 
-  let tutorial;
-
-  // ✅ CHECK IF ID (Mongo ObjectId)
-  if (req.params.slug.match(/^[0-9a-fA-F]{24}$/)) {
-
-   tutorial = await Tutorial.findByIdAndUpdate(
-    req.params.slug,
-    { $inc: { views: 1 } },
-    { new: true }
-   );
-
-  } else {
-
-   tutorial = await Tutorial.findOneAndUpdate(
-    { slug: req.params.slug },
-    { $inc: { views: 1 } },
-    { new: true }
-   );
-
-  }
+  // Public endpoint — resolve by slug only, and only ever return a
+  // published tutorial. Admin screens load drafts by id through the
+  // auth-protected getTutorialById route instead.
+  const tutorial = await Tutorial.findOneAndUpdate(
+   { slug: req.params.slug, status: "published" },
+   { $inc: { views: 1 } },
+   { new: true }
+  );
 
   if (!tutorial) {
    return res.status(404).json({ message: "Tutorial not found" });
@@ -261,6 +291,7 @@ export const getRelatedTutorials = async (req,res)=>{
   const { category, topic, id } = req.query;
 
   const tutorials = await Tutorial.find({
+   status: "published",
    category: category.toLowerCase(),
    topic: topic?.toLowerCase(),
    _id: { $ne: id }
@@ -282,7 +313,7 @@ export const getTrendingTutorials = async (req,res)=>{
 
  try{
 
-  const tutorials = await Tutorial.find()
+  const tutorials = await Tutorial.find({ status: "published" })
    .sort({views:-1})
    .limit(4);
 
@@ -303,7 +334,7 @@ export const getCategories = async (req,res)=>{
 
  try{
 
-  const categories = await Tutorial.distinct("category");
+  const categories = await Tutorial.distinct("category", { status: "published" });
 
   res.json(categories);
 
@@ -323,7 +354,8 @@ export const getTopicsByCategory = async (req,res)=>{
   const {category} = req.params;
 
   const topics = await Tutorial.distinct("topic",{
-   category: category.toLowerCase()
+   category: category.toLowerCase(),
+   status: "published"
   });
 
   res.json(topics);
@@ -347,11 +379,50 @@ export const updateTutorial = async (req, res) => {
    return res.status(404).json({ message: "Tutorial not found" });
   }
 
+  // Category / topic: validate any *changed* value against the taxonomy,
+  // but let an unchanged legacy value pass so old rows stay editable.
+  if (req.body.category != null) {
+   const nextCategory = String(req.body.category).toLowerCase().trim();
+
+   if (
+    nextCategory !== tutorial.category &&
+    !isValidTutorialCategory(nextCategory)
+   ) {
+    return res.status(400).json({
+     message: `Invalid category. Choose one of: ${tutorialCategoryList.join(", ")}`
+    });
+   }
+
+   tutorial.category = nextCategory || tutorial.category;
+  }
+
+  if (req.body.topic != null) {
+   const nextTopic = topicSlug(req.body.topic);
+
+   if (
+    nextTopic &&
+    nextTopic !== tutorial.topic &&
+    !isCleanTopicSlug(nextTopic)
+   ) {
+    return res.status(400).json({
+     message: `Invalid topic "${nextTopic}" (letters, numbers and hyphens only)`
+    });
+   }
+
+   tutorial.topic = nextTopic || tutorial.topic;
+  }
+
   tutorial.title = req.body.title || tutorial.title;
-  tutorial.content = req.body.content || tutorial.content;
-  tutorial.category = req.body.category || tutorial.category;
-  tutorial.topic = req.body.topic || tutorial.topic;
-  tutorial.excerpt = req.body.excerpt || tutorial.excerpt;
+
+  if (req.body.content) {
+   tutorial.content = normalizeTutorialContent(req.body.content);
+  }
+
+  tutorial.excerpt =
+   req.body.excerpt?.trim() ||
+   tutorial.excerpt ||
+   htmlToPlainText(tutorial.content).slice(0, 150);
+
   tutorial.image = req.body.image || tutorial.image;
   tutorial.tags = req.body.tags || tutorial.tags;
   tutorial.status = req.body.status || tutorial.status;
@@ -419,7 +490,8 @@ export const getSubtopics = async (req, res) => {
 
     const tutorials = await Tutorial.find({
       category,
-      topic
+      topic,
+      status: "published"
     }).select("title slug");
 
     res.json(tutorials);

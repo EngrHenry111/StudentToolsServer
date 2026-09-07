@@ -1,2 +1,6 @@
 node_modules
 .env
+
+# Generated audit / migration reports (regenerate with the scripts anytime)
+scripts/reports/*
+!scripts/reports/.gitkeep

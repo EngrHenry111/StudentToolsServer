@@ -2,8 +2,9 @@ import express from "express";
 import {
  createTutorial,
  getTutorials,
+ getAdminTutorials,
  searchTutorials,
- getTutorialBySlug, 
+ getTutorialBySlug,
  getRelatedTutorials,
  getTrendingTutorials,
  searchSuggestions,
@@ -28,6 +29,9 @@ const router = express.Router();
 router.post("/", adminAuth, createTutorial);
 router.get("/", getTutorials);
 
+// Admin-only: full listing including drafts.
+router.get("/admin/list", adminAuth, getAdminTutorials);
+
 router.get("/search", searchTutorials);
 router.get("/suggest",searchSuggestions);
 
@@ -36,16 +40,21 @@ router.get("/related", getRelatedTutorials);   // must be before slug
 
 router.get("/trending", getTrendingTutorials);
 
-router.get("/:slug", getTutorialBySlug);
-
+// Static path segments must be registered before the "/:slug" catch-all,
+// otherwise "/categories", "/topics/x" and "/subtopics" are swallowed by it
+// and resolve as (missing) tutorial slugs.
 router.get("/categories", getCategories);
 
 router.get("/topics/:category", getTopicsByCategory);
 
+router.get("/subtopics", getSubtopics);
+
+// Admin-only: load a single tutorial by id (drafts included) for the
+// edit / preview screens. Public reads go through "/:slug" below.
+router.get("/preview/:id", adminAuth, getTutorialById);
+
+router.get("/:slug", getTutorialBySlug);
+
 router.put("/:id", adminAuth, updateTutorial);
 router.delete("/:id", adminAuth, deleteTutorial);
-
-router.get("/preview/:id", getTutorialById);
-
-router.get("/subtopics", getSubtopics);
 export default router;
