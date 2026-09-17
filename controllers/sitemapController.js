@@ -1,14 +1,5 @@
 import { SitemapStream, streamToPromise } from "sitemap";
 import Tutorial from "../models/tutorialModel.js";
-import { tutorialCategoryList } from "../services/tutorialCategories.js";
-
-// Only these category listing pages have a real, working route (/:category)
-// and clean data. Everything else in the DB category/topic fields is
-// freeform and frequently malformed (full sentences, trailing punctuation,
-// "cgpa tutorials" style values), so we do NOT expose those as crawlable
-// URLs — they were the bulk of the "Discovered - currently not indexed"
-// soft-404s in Search Console.
-const INDEXABLE_CATEGORIES = tutorialCategoryList;
 
 export const generateSitemap = async (req, res) => {
  try {
@@ -16,12 +7,6 @@ export const generateSitemap = async (req, res) => {
   // Only published tutorials belong in the sitemap. Drafts should never be
   // advertised to Google.
   const tutorials = await Tutorial.find({ status: "published" });
-
-  const presentCategories = new Set(
-   tutorials
-    .map(t => (t.category || "").toLowerCase().trim())
-    .filter(cat => INDEXABLE_CATEGORIES.includes(cat))
-  );
 
   const smStream = new SitemapStream({
    hostname: "https://studenttoolsng.com"
@@ -62,14 +47,14 @@ export const generateSitemap = async (req, res) => {
    });
   });
 
-  // Category listing pages (whitelisted, clean data only)
-  presentCategories.forEach(cat => {
-   smStream.write({
-    url: `/${cat}`,
-    changefreq: "weekly",
-    priority: 0.7
-   });
-  });
+  // Category listing pages (/:category, /:category/:topic, ...) are
+  // intentionally NOT included here. Tutorials.jsx marks every one of them
+  // noindex,follow (they're thin listing pages, not real content) — listing
+  // a noindexed URL in the sitemap tells Google "please index this" while
+  // the page itself says "don't", which is exactly the kind of conflicting
+  // signal that produces "Duplicate, Google chose different canonical" and
+  // "Duplicate without user-selected canonical" in Search Console. A
+  // sitemap should only ever contain URLs we actually want indexed.
 
   // Individual published tutorial articles — the real content
   tutorials.forEach(tutorial => {
