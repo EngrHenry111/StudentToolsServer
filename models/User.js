@@ -33,11 +33,21 @@ const userSchema = new mongoose.Schema({
     default: "local"
   },
 
+  // 🔒 BUG FIX: `default: null` was the actual cause of the
+  // "E11000 duplicate key error ... googleId_1 dup key: { googleId: null }"
+  // crash on the SECOND local (non-Google) registration. A sparse index
+  // only skips documents where the field is truly MISSING — but
+  // `default: null` made Mongoose write an explicit `null` into every
+  // local user's document, which a sparse index treats as a real,
+  // must-be-unique value (so only one local user could ever register).
+  // Removing the default leaves the field genuinely absent for local
+  // signups, which sparse does correctly skip. See
+  // scripts/fixGoogleIdNulls.js for the one-time cleanup of documents
+  // already written with the old, explicit null.
   googleId: {
     type: String,
-    default: null,
     unique: true,
-    sparse: true // allows many docs with googleId: null without a unique-index collision
+    sparse: true
   },
 
   // ---------------- PASSWORD RESET ----------------
