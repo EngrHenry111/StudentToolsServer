@@ -74,6 +74,18 @@ const listingSchema = new mongoose.Schema({
   salesCount: {
     type: Number,
     default: 0
+  },
+
+  // Denormalized from Review (recomputed on every review write) so cards,
+  // search results and JSON-LD never need an aggregate per listing.
+  ratingAverage: {
+    type: Number,
+    default: 0
+  },
+
+  ratingCount: {
+    type: Number,
+    default: 0
   }
 
 }, { timestamps: true });

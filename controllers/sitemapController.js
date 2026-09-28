@@ -42,6 +42,7 @@ export const generateSitemap = async (req, res) => {
    { url: "/ai-tutor", changefreq: "weekly", priority: 0.7 },
    { url: "/tutorials/math-calculator", changefreq: "weekly", priority: 0.7 },
    { url: "/quiz", changefreq: "weekly", priority: 0.7 },
+   { url: "/marketplace", changefreq: "daily", priority: 0.8 },
 
    { url: "/about", changefreq: "yearly", priority: 0.5 },
    { url: "/contact", changefreq: "yearly", priority: 0.5 },
