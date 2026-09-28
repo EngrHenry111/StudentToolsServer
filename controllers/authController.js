@@ -436,12 +436,12 @@ export const forgotPassword = async (req, res) => {
       return res.json(genericResponse);
     }
 
-    if (user.authProvider === "google" && !user.password) {
-      // Google-only account — there's no password to reset. Still return
-      // the generic message (don't leak account existence/type), but
-      // don't actually send a reset email since it wouldn't make sense.
-      return res.json(genericResponse);
-    }
+    // Google-only accounts get the same link, worded as "set a password".
+    // Previously they got nothing, which locked people out completely
+    // whenever Google Sign-In was unavailable. It's just as safe as a
+    // normal reset: only whoever controls this inbox can use the link,
+    // and resetPassword already converts the account to local + password.
+    const isSettingFirstPassword = !user.password;
 
     const resetToken = crypto.randomBytes(32).toString("hex");
     const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
@@ -457,12 +457,16 @@ export const forgotPassword = async (req, res) => {
       await transporter.sendMail({
         from: process.env.EMAIL_USER,
         to: user.email,
-        subject: "Reset your StudentToolsNG password",
+        subject: isSettingFirstPassword
+          ? "Set a password for your StudentToolsNG account"
+          : "Reset your StudentToolsNG password",
         html: `
           <div style="font-family:Arial,sans-serif;padding:20px;">
-            <h2 style="color:#2563eb;">Reset your password</h2>
-            <p>We received a request to reset your StudentToolsNG password. This link expires in 30 minutes.</p>
-            <p><a href="${resetUrl}" style="background:#2563eb;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;">Reset Password</a></p>
+            <h2 style="color:#2563eb;">${isSettingFirstPassword ? "Set your password" : "Reset your password"}</h2>
+            <p>${isSettingFirstPassword
+              ? "Your StudentToolsNG account was created with Google Sign-In. Set a password below so you can also log in with your email and password. This link expires in 30 minutes."
+              : "We received a request to reset your StudentToolsNG password. This link expires in 30 minutes."}</p>
+            <p><a href="${resetUrl}" style="background:#2563eb;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;">${isSettingFirstPassword ? "Set Password" : "Reset Password"}</a></p>
             <p>If you didn't request this, you can safely ignore this email — your password will not be changed.</p>
           </div>
         `
