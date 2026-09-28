@@ -2,6 +2,8 @@ import MarketplaceOrder from "../models/MarketplaceOrder.js";
 import Listing from "../models/Listing.js";
 import { verifyMarketplaceTransaction } from "./marketplacePaystackService.js";
 
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
 // Single place an order ever flips to "completed" — shared by the
 // webhook(s) and the verify-on-return fallback below. The status filter
 // makes the flip atomic, so a webhook and a verify racing on the same
@@ -43,7 +45,12 @@ export const confirmOrderWithPaystack = async (order) => {
     return true;
   }
 
-  if (tx?.status === "failed") {
+  // "failed", or a checkout the buyer walked away from over a day ago
+  // (Paystack reports those as "abandoned") — stop showing it as Pending.
+  const staleAbandoned =
+    tx?.status === "abandoned" && Date.now() - new Date(order.createdAt).getTime() > ONE_DAY_MS;
+
+  if (tx?.status === "failed" || staleAbandoned) {
     await MarketplaceOrder.updateOne({ _id: order._id, status: "pending" }, { status: "failed" });
   }
 
@@ -65,7 +72,7 @@ export const findOwnedOrder = async (buyerId, listingId) => {
     buyer: buyerId,
     listing: listingId,
     status: "pending",
-    createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
+    createdAt: { $gte: new Date(Date.now() - 7 * ONE_DAY_MS) }
   })
     .sort({ createdAt: -1 })
     .limit(3);
@@ -77,4 +84,21 @@ export const findOwnedOrder = async (buyerId, listingId) => {
   }
 
   return null;
+};
+
+// Brings a publisher's recent pending orders up to date with Paystack
+// before their Orders page / dashboard is shown — otherwise an order only
+// ever moved off "Pending" when the buyer reopened the listing or the
+// webhook arrived. Bounded (last 7 days, 20 orders) and run in parallel
+// so the page stays fast.
+export const reconcilePendingOrders = async (filter) => {
+  const pending = await MarketplaceOrder.find({
+    ...filter,
+    status: "pending",
+    createdAt: { $gte: new Date(Date.now() - 7 * ONE_DAY_MS) }
+  })
+    .sort({ createdAt: -1 })
+    .limit(20);
+
+  await Promise.all(pending.map((order) => confirmOrderWithPaystack(order)));
 };

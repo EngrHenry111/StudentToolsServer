@@ -6,6 +6,7 @@ import {
   createSubaccount,
   listBanks
 } from "../services/marketplacePaystackService.js";
+import { reconcilePendingOrders } from "../services/marketplaceOrderService.js";
 
 // ---------------- PUBLIC-ISH (any logged-in user) ----------------
 
@@ -133,6 +134,8 @@ export const getMyOverview = async (req, res) => {
       return res.status(404).json({ message: "No publisher workspace found" });
     }
 
+    await reconcilePendingOrders({ publisher: publisher._id });
+
     const [recentOrders, totalSalesAgg] = await Promise.all([
       MarketplaceOrder.find({ publisher: publisher._id, status: "completed" })
         .populate("listing", "title slug")
@@ -169,6 +172,8 @@ export const getMyOrders = async (req, res) => {
     if (!publisher) {
       return res.status(404).json({ message: "No publisher workspace found" });
     }
+
+    await reconcilePendingOrders({ publisher: publisher._id });
 
     const orders = await MarketplaceOrder.find({ publisher: publisher._id })
       .populate("listing", "title slug")
