@@ -80,7 +80,8 @@ const listingSchema = new mongoose.Schema({
 
 listingSchema.index({ publisher: 1, slug: 1 }, { unique: true });
 
-listingSchema.pre("save", async function () {
+// pre("validate"), not pre("save") — see the same note in Publisher.js.
+listingSchema.pre("validate", async function () {
   if (this.isNew && this.title && !this.slug) {
     let candidate = slugify(this.title, { lower: true, strict: true });
     let suffix = 0;

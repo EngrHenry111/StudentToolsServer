@@ -74,7 +74,9 @@ const publisherSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-publisherSchema.pre("save", async function () {
+// pre("validate"), not pre("save"): Mongoose validates BEFORE save hooks
+// run, so a slug generated in pre("save") is too late for `required: true`.
+publisherSchema.pre("validate", async function () {
   if (this.isNew && this.businessName && !this.slug) {
     let candidate = slugify(this.businessName, { lower: true, strict: true });
     let suffix = 0;
