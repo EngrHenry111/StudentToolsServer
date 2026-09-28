@@ -7,6 +7,48 @@ import {
   listBanks
 } from "../services/marketplacePaystackService.js";
 import { reconcilePendingOrders } from "../services/marketplaceOrderService.js";
+import transporter from "../config/mailer.js";
+
+const HTML_ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+const escapeHtml = (str = "") => String(str).replace(/[&<>"']/g, (c) => HTML_ESCAPES[c]);
+
+// Paystack holds a new subaccount's first payout until it's verified by
+// hand on the dashboard (no API for it), so the admin needs to know the
+// moment a publisher signs up. Fire-and-forget: a mail failure is logged
+// but never fails the registration itself.
+const notifyAdminNewPublisher = (publisher, user) => {
+  const to = process.env.ADMIN_EMAIL || process.env.EMAIL_USER;
+  if (!to) return;
+
+  const row = (label, value) =>
+    `<tr><td style="padding:4px 12px 4px 0;color:#64748b;">${label}</td><td style="padding:4px 0;"><strong>${escapeHtml(value)}</strong></td></tr>`;
+
+  transporter
+    .sendMail({
+      from: process.env.EMAIL_USER,
+      to,
+      subject: `New publisher to verify on Paystack: ${publisher.businessName}`,
+      html: `
+        <div style="font-family:Arial,sans-serif;padding:20px;">
+          <h2 style="color:#2563eb;">New publisher — verify their Paystack subaccount</h2>
+          <p>Their first payout is held by Paystack until you verify the subaccount.</p>
+          <table style="border-collapse:collapse;margin:12px 0;">
+            ${row("Business name", publisher.businessName)}
+            ${row("User", `${user.username} (${user.email})`)}
+            ${row("Bank", publisher.bankName)}
+            ${row("Account name (from bank)", publisher.accountName)}
+            ${row("Account number", publisher.accountNumber)}
+            ${row("Subaccount code", publisher.paystackSubaccountCode)}
+            ${row("Commission", `${publisher.commissionRate}%`)}
+          </table>
+          <p>Check the account name looks genuine for this publisher, then verify it:</p>
+          <p><a href="https://dashboard.paystack.com/#/subaccounts" style="background:#2563eb;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;">Open Paystack Subaccounts</a></p>
+          <p style="color:#64748b;font-size:13px;">Storefront: https://studenttoolsng.com/publishers/${escapeHtml(publisher.slug)}</p>
+        </div>
+      `
+    })
+    .catch((err) => console.error("NEW PUBLISHER ADMIN EMAIL FAILED:", err.message));
+};
 
 // ---------------- PUBLIC-ISH (any logged-in user) ----------------
 
@@ -93,6 +135,8 @@ export const registerPublisher = async (req, res) => {
       status: "active",
       commissionRate: settings.defaultCommissionRate
     });
+
+    notifyAdminNewPublisher(publisher, req.user);
 
     res.status(201).json({
       message: "Publisher workspace created",
