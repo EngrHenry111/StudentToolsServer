@@ -69,7 +69,7 @@ export const createSubaccount = async ({ businessName, bankCode, accountNumber, 
 // percentage_charge fixed at creation time; we don't override it per
 // transaction (no transaction_charge / bearer overrides), so a
 // publisher's agreed commission rate can never silently drift.
-export const initializeMarketplaceTransaction = async ({ email, amountKobo, subaccountCode, reference, metadata }) => {
+export const initializeMarketplaceTransaction = async ({ email, amountKobo, subaccountCode, reference, callbackUrl, metadata }) => {
   const response = await axios.post(
     `${PAYSTACK_URL}/transaction/initialize`,
     {
@@ -77,6 +77,8 @@ export const initializeMarketplaceTransaction = async ({ email, amountKobo, suba
       amount: amountKobo,
       subaccount: subaccountCode,
       reference,
+      // Paystack redirects here after payment, appending ?reference=...
+      callback_url: callbackUrl,
       metadata
     },
     { headers: paystackHeaders() }

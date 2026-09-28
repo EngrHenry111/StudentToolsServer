@@ -2,7 +2,8 @@ import express from "express";
 import {
   getPublisherStorefront,
   getListingBySlug,
-  initiatePurchase
+  initiatePurchase,
+  getMyPurchases
 } from "../controllers/marketplaceController.js";
 import authUser from "../middleware/authUser.js";
 import optionalAuthUser from "../middleware/optionalAuthUser.js";
@@ -20,5 +21,6 @@ router.get("/publishers/:slug/:listingSlug", optionalAuthUser, getListingBySlug)
 
 // ---- Authenticated purchase ----
 router.post("/purchase", authUser, initiatePurchase);
+router.get("/me/purchases", authUser, getMyPurchases);
 
 export default router;

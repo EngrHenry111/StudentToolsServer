@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import MarketplaceOrder from "../models/MarketplaceOrder.js";
-import Listing from "../models/Listing.js";
+import { markOrderCompleted } from "../services/marketplaceOrderService.js";
 
 // Separate from controllers/paystackwebhook.js on purpose (see
 // marketplacePaystackService.js) — same signature-verification rigor,
@@ -39,15 +39,10 @@ export const marketplaceWebhook = async (req, res) => {
         return res.sendStatus(200);
       }
 
-      // Idempotency: Paystack can deliver the same event more than once —
-      // without this guard a retried webhook would double-count
-      // salesCount on every redelivery.
-      if (order.status !== "completed") {
-        order.status = "completed";
-        order.purchasedAt = new Date();
-        await order.save();
-
-        await Listing.findByIdAndUpdate(order.listing, { $inc: { salesCount: 1 } });
+      // Idempotent: markOrderCompleted only flips a not-yet-completed
+      // order, so a redelivered event never double-counts salesCount.
+      if (Number(event.data.amount) === order.amount) {
+        await markOrderCompleted(reference);
       }
     }
 

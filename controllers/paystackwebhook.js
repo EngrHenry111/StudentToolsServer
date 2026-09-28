@@ -1,5 +1,7 @@
 import crypto from "crypto";
 import User from "../models/User.js";
+import MarketplaceOrder from "../models/MarketplaceOrder.js";
+import { confirmOrderWithPaystack } from "../services/marketplaceOrderService.js";
 
 export const paystackWebhook = async (
   req,
@@ -27,6 +29,16 @@ export const paystackWebhook = async (
     }
 
     const event = req.body;
+
+    // A Paystack account has ONE webhook URL. If the marketplace runs on
+    // the same account as Pro, its charge events land here instead of
+    // /api/marketplace/webhook — so hand them over. Confirmed against
+    // Paystack's verify API (not the event body), amount-checked there.
+    if (event.event === "charge.success" && event.data?.metadata?.type === "marketplace") {
+      const order = await MarketplaceOrder.findOne({ paystackReference: event.data.reference });
+      if (order) await confirmOrderWithPaystack(order);
+      return res.sendStatus(200);
+    }
 
     // subscription activated
     if (
