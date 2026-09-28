@@ -267,7 +267,7 @@ export const getTutorialBySlug = async (req, res) => {
   const tutorial = await Tutorial.findOneAndUpdate(
    { slug: req.params.slug, status: "published" },
    { $inc: { views: 1 } },
-   { new: true }
+   { returnDocument: "after" }
   );
 
   if (!tutorial) {

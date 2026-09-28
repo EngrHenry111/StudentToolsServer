@@ -211,7 +211,7 @@ export const adminUpdateSettings = async (req, res) => {
     const settings = await PlatformSettings.findOneAndUpdate(
       { key: "global" },
       { defaultCommissionRate: rate },
-      { new: true, upsert: true }
+      { returnDocument: "after", upsert: true }
     );
 
     res.json(settings);

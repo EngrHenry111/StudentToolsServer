@@ -71,7 +71,7 @@ const run = async () => {
     await Institution.findOneAndUpdate(
       { slug: inst.slug },
       inst,
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: "after" }
     );
     console.log(`Upserted: ${inst.name}`);
   }

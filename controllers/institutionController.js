@@ -89,7 +89,7 @@ export const adminListInstitutions = async (req, res) => {
 
 export const adminUpdateInstitution = async (req, res) => {
   try {
-    const updated = await Institution.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updated = await Institution.findByIdAndUpdate(req.params.id, req.body, { returnDocument: "after" });
     if (!updated) return res.status(404).json({ message: "Institution not found" });
     res.json(updated);
   } catch (err) {

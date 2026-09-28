@@ -12,7 +12,7 @@ export const markOrderCompleted = async (reference) => {
   const order = await MarketplaceOrder.findOneAndUpdate(
     { paystackReference: reference, status: { $ne: "completed" } },
     { status: "completed", purchasedAt: new Date() },
-    { new: true }
+    { returnDocument: "after" }
   );
 
   if (order) {

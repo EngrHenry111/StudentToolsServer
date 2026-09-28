@@ -153,4 +153,3 @@ app.listen(PORT,()=>{
  startScheduledJobs();
 });
 
-console.log("OPENAI KEY:", process.env.OPENAI_API_KEY);
