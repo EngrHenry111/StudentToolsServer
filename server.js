@@ -28,6 +28,9 @@ import studyPlannerRoutes from "./routes/studyPlannerRoutes.js";
 import { errorHandler } from "./middleware/errorMiddleware.js";
 import paymentRoutes from "./routes/paymentRoute.js";
 import { paystackWebhook } from "./controllers/paystackwebhook.js";
+import publisherRoutes from "./routes/publisherRoutes.js";
+import marketplaceRoutes from "./routes/marketplaceRoutes.js";
+import { marketplaceWebhook } from "./controllers/marketplaceWebhook.js";
 
 connectDB();
 
@@ -87,6 +90,18 @@ app.post(
   paystackWebhook
 );
 
+// Same raw-body requirement as above, for the fully separate marketplace
+// payment path (see services/marketplacePaystackService.js).
+app.post(
+  "/api/marketplace/webhook",
+  express.json({
+    verify: (req, res, buf) => {
+      req.rawBody = buf;
+    }
+  }),
+  marketplaceWebhook
+);
+
 app.use(express.json());
 
 app.get("/",(req,res)=>{
@@ -125,6 +140,9 @@ app.use("/api/auth", authRoutes);
 app.use("/api/study-planner", studyPlannerRoutes);
 
 app.use("/api/payment", paymentRoutes);
+
+app.use("/api/publishers", publisherRoutes);
+app.use("/api/marketplace", marketplaceRoutes);
 
 app.use(errorHandler);
 

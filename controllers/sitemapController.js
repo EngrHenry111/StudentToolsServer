@@ -1,5 +1,7 @@
 import { SitemapStream, streamToPromise } from "sitemap";
 import Tutorial from "../models/tutorialModel.js";
+import Publisher from "../models/Publisher.js";
+import Listing from "../models/Listing.js";
 
 export const generateSitemap = async (req, res) => {
  try {
@@ -7,6 +9,16 @@ export const generateSitemap = async (req, res) => {
   // Only published tutorials belong in the sitemap. Drafts should never be
   // advertised to Google.
   const tutorials = await Tutorial.find({ status: "published" });
+
+  // Same rule for the marketplace: only active publishers and published
+  // listings are advertised — a suspended publisher or a draft listing
+  // has no business being submitted for indexing (Task 4).
+  const publishers = await Publisher.find({ status: "active" }).select("slug updatedAt createdAt");
+  const publisherById = new Map(publishers.map((p) => [String(p._id), p]));
+
+  const listings = await Listing.find({ status: "published" })
+   .select("slug publisher updatedAt createdAt")
+   .lean();
 
   const smStream = new SitemapStream({
    hostname: "https://studenttoolsng.com"
@@ -65,6 +77,33 @@ export const generateSitemap = async (req, res) => {
     changefreq: "weekly",
     priority: 0.8,
     lastmod: tutorial.updatedAt || tutorial.createdAt
+   });
+  });
+
+  // Publisher storefronts
+  publishers.forEach(publisher => {
+   if (!publisher.slug) return;
+
+   smStream.write({
+    url: `/publishers/${publisher.slug}`,
+    changefreq: "weekly",
+    priority: 0.7,
+    lastmod: publisher.updatedAt || publisher.createdAt
+   });
+  });
+
+  // Individual published listings — a listing's publisher may have been
+  // suspended after the listing was published, so only emit a listing
+  // URL when its publisher is still active too.
+  listings.forEach(listing => {
+   const publisher = publisherById.get(String(listing.publisher));
+   if (!publisher || !listing.slug) return;
+
+   smStream.write({
+    url: `/publishers/${publisher.slug}/${listing.slug}`,
+    changefreq: "weekly",
+    priority: 0.75,
+    lastmod: listing.updatedAt || listing.createdAt
    });
   });
 
