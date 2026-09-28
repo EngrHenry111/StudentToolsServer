@@ -8,9 +8,6 @@ import { findOwnedOrder } from "../services/marketplaceOrderService.js";
 // Where Paystack sends the buyer back after paying.
 const CLIENT_URL = process.env.CLIENT_URL || "https://studenttoolsng.com";
 
-const HTML_ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
-const escapeHtml = (str = "") => String(str).replace(/[&<>"']/g, (c) => HTML_ESCAPES[c]);
-
 // ---------------- PUBLIC: storefront ----------------
 
 export const getPublisherStorefront = async (req, res) => {
@@ -82,9 +79,9 @@ export const getListingBySlug = async (req, res) => {
         // this exact copy back to the purchase, so a downloaded/copied
         // document is traceable. Appended at response time (never stored
         // on the listing itself) so it always reflects the real buyer.
-        // fullContent is HTML, so the watermark is too (escaped — username
-        // is user-controlled).
-        const watermark = `<hr /><p><em>Purchased by ${escapeHtml(req.user.username)} on ${order.purchasedAt.toDateString()}. For personal use only — do not redistribute.</em></p>`;
+        // fullContent is plain text (the client renders it as text, never
+        // HTML), so the watermark is its own trailing paragraph.
+        const watermark = `\n\n———\nPurchased by ${req.user.username} on ${order.purchasedAt.toDateString()}. For personal use only — do not redistribute.`;
         payload.fullContent = listing.fullContent + watermark;
       }
     }
