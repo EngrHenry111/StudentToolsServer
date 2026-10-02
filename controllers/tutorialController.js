@@ -1,4 +1,5 @@
 import Tutorial from "../models/tutorialModel.js";
+import TutorialRedirect from "../models/TutorialRedirect.js";
 import {
  normalizeTutorialContent,
  htmlToPlainText
@@ -385,6 +386,19 @@ export const getTutorialBySlug = async (req, res) => {
   );
 
   if (!tutorial) {
+   // Removed or merged tutorial: tell the client whether to 301 or 410.
+   const redirect = await TutorialRedirect.findOne({
+    fromSlug: String(req.params.slug).toLowerCase()
+   }).lean();
+
+   if (redirect?.toPath) {
+    return res.status(200).json({ redirectTo: redirect.toPath });
+   }
+
+   if (redirect) {
+    return res.status(410).json({ message: "Tutorial removed", gone: true });
+   }
+
    return res.status(404).json({ message: "Tutorial not found" });
   }
 
@@ -394,6 +408,44 @@ export const getTutorialBySlug = async (req, res) => {
   res.status(500).json({ message: error.message });
  }
 
+};
+
+// Resolve an admin-supplied redirect target to a site path. Accepts a
+// tutorial slug, "/tutorial/<slug>", or any other site path ("/cgpa-calculator").
+const resolveRedirectTarget = async (raw) => {
+ const value = String(raw || "").trim();
+ if (!value) return null;
+
+ let path = value.replace(/^https?:\/\/(www\.)?studenttoolsng\.com/i, "");
+ if (!path.startsWith("/")) path = `/tutorial/${path}`;
+
+ if (!/^\/[a-z0-9\-/]*$/i.test(path)) {
+  throw new Error("Redirect must be a tutorial slug or a site path like /cgpa-calculator");
+ }
+
+ const m = path.match(/^\/tutorial\/([^/]+)$/);
+ if (m) {
+  const target = await Tutorial.findOne({ slug: m[1], status: "published" }).select("_id");
+  if (!target) throw new Error(`Redirect target "${m[1]}" is not a published tutorial`);
+ }
+
+ return path;
+};
+
+// Record that `slug` is gone (toPath null) or moved, and repoint any older
+// redirects that targeted it so Google never has to follow a chain.
+export const recordTutorialRedirect = async (slug, toPath, reason = "") => {
+ if (!slug) return;
+ const fromPath = `/tutorial/${slug}`;
+
+ if (toPath === fromPath) toPath = null;
+
+ await TutorialRedirect.updateMany({ toPath: fromPath }, { $set: { toPath } });
+ await TutorialRedirect.updateOne(
+  { fromSlug: slug },
+  { $set: { toPath, reason } },
+  { upsert: true }
+ );
 };
 
 // MODIFY THIS FUNCTION
@@ -598,10 +650,24 @@ export const deleteTutorial = async (req, res) => {
    });
   }
 
+  // Where the old URL should go: ?redirectTo=<slug or /path>. Without one
+  // the URL answers 410 Gone so Google drops it quickly.
+  let toPath = null;
+  try {
+   toPath = await resolveRedirectTarget(req.query.redirectTo || req.body?.redirectTo);
+  } catch (err) {
+   return res.status(400).json({ message: err.message });
+  }
+
   await tutorial.deleteOne();
 
+  if (tutorial.status === "published" || tutorial.views > 0) {
+   await recordTutorialRedirect(tutorial.slug, toPath, `deleted "${tutorial.title}"`);
+  }
+
   res.json({
-   message: "Tutorial deleted successfully"
+   message: "Tutorial deleted successfully",
+   redirectTo: toPath
   });
 
  } catch (error) {
