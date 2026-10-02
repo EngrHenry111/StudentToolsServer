@@ -13,7 +13,8 @@ import {
  updateTutorial,
  deleteTutorial,
  getTutorialById,
- getSubtopics
+ getSubtopics,
+ checkTutorialDraft
 } from "../controllers/tutorialController.js";
 
 import adminAuth from "../middleware/adminAuth.js"
@@ -28,6 +29,9 @@ const router = express.Router();
 // unreliable).
 router.post("/", adminAuth, createTutorial);
 router.get("/", getTutorials);
+
+// Admin-only: duplicate topic / repeated content / SEO keyword check.
+router.post("/check", adminAuth, checkTutorialDraft);
 
 // Admin-only: full listing including drafts.
 router.get("/admin/list", adminAuth, getAdminTutorials);

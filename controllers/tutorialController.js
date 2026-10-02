@@ -9,6 +9,41 @@ import {
  topicSlug,
  tutorialCategoryList
 } from "../services/tutorialCategories.js";
+import {
+ checkTutorial,
+ escapeRegex,
+ parseKeywords
+} from "../services/tutorialQuality.js";
+
+// Duplicate gate shared by create/update. Hard duplicates are always
+// rejected; softer matches (similar title in the same topic, partial content
+// overlap, repeated paragraphs, keyword clash) need `confirmSimilar: true`
+// from the admin after they've seen the warnings.
+const runDuplicateGate = async (fields, body, res) => {
+ const report = await checkTutorial(fields);
+
+ if (report.blocking.length) {
+  res.status(409).json({
+   message: report.blocking.join(" "),
+   duplicate: true,
+   blocked: true,
+   report
+  });
+  return null;
+ }
+
+ if (report.warnings.length && !body.confirmSimilar) {
+  res.status(409).json({
+   message: report.warnings.join(" "),
+   duplicate: true,
+   blocked: false,
+   report
+  });
+  return null;
+ }
+
+ return report;
+};
 
 /*
 Create Tutorial (minimal working version)
@@ -17,7 +52,6 @@ Create Tutorial (minimal working version)
 export const createTutorial = async (req, res) => {
  try {
 
-  console.log("RAW CONTENT:", req.body.content);
   // ✅ Validate title
   const cleanTitle = req.body.title?.trim();
 
@@ -27,9 +61,9 @@ export const createTutorial = async (req, res) => {
    });
   }
 
-  // ✅ Check duplicate (case insensitive)
+  // ✅ Check duplicate (case insensitive, regex-escaped)
   const existing = await Tutorial.findOne({
-   title: { $regex: `^${cleanTitle}$`, $options: "i" }
+   title: { $regex: `^${escapeRegex(cleanTitle)}$`, $options: "i" }
   });
 
   if (existing) {
@@ -97,17 +131,28 @@ export const createTutorial = async (req, res) => {
    ? req.body.tags.map(tag => tag.toLowerCase().trim())
    : [];
 
-  // ✅ Generate SLUG (VERY IMPORTANT FOR SEO)
-  const slug = cleanTitle
-   .toLowerCase()
-   .replace(/[^a-z0-9\s-]/g, "")
-   .replace(/\s+/g, "-");
+  const focusKeyword = req.body.focusKeyword?.toLowerCase().trim() || "";
+  const keywords = parseKeywords(req.body.keywords);
 
-  // ✅ CREATE
+  // ✅ Duplicate topic / repeated content / keyword clash
+  const report = await runDuplicateGate({
+   title: cleanTitle,
+   content,
+   category,
+   topic,
+   excerpt,
+   focusKeyword,
+   keywords
+  }, req.body, res);
+  if (!report) return;
+
+  // ✅ CREATE (slug is generated once by the model's pre-save hook)
   const tutorial = await Tutorial.create({
    title: cleanTitle,
-   slug,
    content,
+   contentHash: report.contentHash,
+   focusKeyword,
+   keywords,
    category,
    topic,
    excerpt,
@@ -196,18 +241,51 @@ export const searchTutorials = async (req,res)=>{
 
  try{
 
-  const {q} = req.query;
+  const q = String(req.query.q || "").trim().slice(0, 100);
 
-  const tutorials = await Tutorial.find({
+  if(!q){
+   return res.json([]);
+  }
 
-   status: "published",
-   $or:[
-    {title:{$regex:q,$options:"i"}},
-    {content:{$regex:q,$options:"i"}},
-    {category:{$regex:q,$options:"i"}}
-   ]
+  const fields = "title slug excerpt content category topic image tags focusKeyword views createdAt";
+  let tutorials = [];
 
-  }).limit(10);
+  // Ranked keyword search: title > focus keyword > keywords > tags >
+  // excerpt > body (weights live on the text index in the model).
+  try{
+   tutorials = await Tutorial.find(
+    { status: "published", $text: { $search: q } },
+    { score: { $meta: "textScore" } }
+   )
+   .sort({ score: { $meta: "textScore" }, views: -1 })
+   .select(fields)
+   .limit(20)
+   .lean();
+  }catch(err){
+   console.error("TEXT SEARCH UNAVAILABLE:", err.message);
+  }
+
+  // Fallback for partial words ("newt") or if the text index isn't built.
+  if(!tutorials.length){
+   const rx = { $regex: escapeRegex(q), $options: "i" };
+
+   tutorials = await Tutorial.find({
+    status: "published",
+    $or:[
+     {title: rx},
+     {focusKeyword: rx},
+     {keywords: rx},
+     {tags: rx},
+     {excerpt: rx},
+     {topic: rx},
+     {category: rx}
+    ]
+   })
+   .sort({ views: -1 })
+   .select(fields)
+   .limit(20)
+   .lean();
+  }
 
   res.json(tutorials);
 
@@ -225,19 +303,26 @@ export const searchSuggestions = async (req,res)=>{
 
  try{
 
-  const {q} = req.query;
+  const q = String(req.query.q || "").trim().slice(0, 60);
 
   if(!q){
    return res.json([]);
   }
 
+  const rx = { $regex: escapeRegex(q), $options: "i" };
+
   const tutorials = await Tutorial.find({
 
    status: "published",
-   title:{$regex:q,$options:"i"}
+   $or:[
+    {title: rx},
+    {focusKeyword: rx},
+    {keywords: rx}
+   ]
 
   })
-  .limit(5)
+  .sort({ views: -1 })
+  .limit(6)
   .select("title slug");
 
   res.json(tutorials);
@@ -251,6 +336,35 @@ export const searchSuggestions = async (req,res)=>{
  }
 
 };
+
+/*
+Admin: run the duplicate / repeated-content / SEO keyword check on a draft
+without saving it. Pass `id` when editing so the tutorial isn't compared
+against itself.
+*/
+export const checkTutorialDraft = async (req, res) => {
+ try {
+
+  const report = await checkTutorial({
+   title: req.body.title?.trim() || "",
+   content: normalizeTutorialContent(req.body.content || ""),
+   category: req.body.category?.toLowerCase().trim() || "",
+   topic: topicSlug(req.body.topic || ""),
+   excerpt: req.body.excerpt?.trim() || "",
+   focusKeyword: req.body.focusKeyword || "",
+   keywords: parseKeywords(req.body.keywords),
+   excludeId: req.body.id || null
+  });
+
+  delete report.contentHash;
+  res.json(report);
+
+ } catch (error) {
+  console.error("CHECK TUTORIAL ERROR:", error);
+  res.status(500).json({ message: error.message });
+ }
+};
+
 /*
 Get Tutorial By Slug
 */
@@ -426,6 +540,39 @@ export const updateTutorial = async (req, res) => {
   tutorial.image = req.body.image || tutorial.image;
   tutorial.tags = req.body.tags || tutorial.tags;
   tutorial.status = req.body.status || tutorial.status;
+
+  if (req.body.focusKeyword != null) {
+   tutorial.focusKeyword = String(req.body.focusKeyword).toLowerCase().trim();
+  }
+
+  if (req.body.keywords != null) {
+   tutorial.keywords = parseKeywords(req.body.keywords);
+  }
+
+  // Re-check duplicates only when something that defines the topic or the
+  // body changed, so routine edits (status, image) never get blocked by
+  // older near-duplicates.
+  if (
+   tutorial.isModified("title") ||
+   tutorial.isModified("content") ||
+   tutorial.isModified("topic") ||
+   tutorial.isModified("category") ||
+   tutorial.isModified("focusKeyword")
+  ) {
+   const report = await runDuplicateGate({
+    title: tutorial.title,
+    content: tutorial.content,
+    category: tutorial.category,
+    topic: tutorial.topic,
+    excerpt: tutorial.excerpt,
+    focusKeyword: tutorial.focusKeyword,
+    keywords: tutorial.keywords,
+    excludeId: tutorial._id
+   }, req.body, res);
+   if (!report) return;
+
+   tutorial.contentHash = report.contentHash;
+  }
 
   const updated = await tutorial.save();
 

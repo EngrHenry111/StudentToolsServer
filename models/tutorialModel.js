@@ -32,7 +32,24 @@ const tutorialSchema = new mongoose.Schema({
 
  image:String,
 
- tags:[String],// ADD THIS inside tutorialSchema
+ tags:[String],
+
+ // SEO: the main phrase this page targets, plus secondary phrases. Used for
+ // the keywords meta tag, search ranking and keyword-cannibalisation checks.
+ focusKeyword:{
+  type:String,
+  lowercase:true,
+  trim:true,
+  default:""
+ },
+
+ keywords:[String],
+
+ // sha1 of the normalised plain text — catches exact re-uploads cheaply.
+ contentHash:{
+  type:String,
+  index:true
+ },
 
 status: {
  type: String,
@@ -75,5 +92,15 @@ tutorialSchema.pre("save", async function(){
 
 });
 
+
+// Weighted full-text index for public search: a hit in the title or SEO
+// keywords outranks a passing mention in the body.
+tutorialSchema.index(
+ { title:"text", focusKeyword:"text", keywords:"text", tags:"text", excerpt:"text", content:"text" },
+ {
+  name:"tutorial_search",
+  weights:{ title:10, focusKeyword:8, keywords:6, tags:5, excerpt:3, content:1 }
+ }
+);
 
 export default mongoose.model("Tutorial",tutorialSchema);
