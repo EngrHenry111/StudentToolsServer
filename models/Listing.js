@@ -76,6 +76,13 @@ const listingSchema = new mongoose.Schema({
     default: 0
   },
 
+  // Detail-page opens by real visitors (not the owning publisher, not
+  // crawlers) — incremented in marketplaceController.getListingBySlug.
+  views: {
+    type: Number,
+    default: 0
+  },
+
   // Denormalized from Review (recomputed on every review write) so cards,
   // search results and JSON-LD never need an aggregate per listing.
   ratingAverage: {

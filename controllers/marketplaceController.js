@@ -11,7 +11,11 @@ const CLIENT_URL = process.env.CLIENT_URL || "https://studenttoolsng.com";
 
 // Fields a listing CARD needs (library, storefront, related sections) —
 // never the (large) preview/full content.
-const CARD_FIELDS = "title slug field price coverImageUrl salesCount ratingAverage ratingCount publisher createdAt";
+const CARD_FIELDS = "title slug field price coverImageUrl salesCount views ratingAverage ratingCount publisher createdAt";
+
+// Crawlers and the Prerender service fetch listing pages too; counting
+// them would make every listing look viewed.
+const BOT_UA = /bot|crawl|spider|slurp|prerender|headless|lighthouse|facebookexternalhit|whatsapp/i;
 
 const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -163,6 +167,16 @@ export const getListingBySlug = async (req, res) => {
       return res.status(404).json({ message: "Listing not found" });
     }
 
+    // Count the view unless it's the publisher checking their own page
+    // or a crawler.
+    const isOwner = Boolean(req.user && String(publisher.user) === String(req.user._id));
+    const isBot = BOT_UA.test(req.get("user-agent") || "");
+    let views = listing.views || 0;
+    if (!isOwner && !isBot) {
+      await Listing.updateOne({ _id: listing._id }, { $inc: { views: 1 } });
+      views += 1;
+    }
+
     const payload = {
       _id: listing._id,
       title: listing.title,
@@ -172,6 +186,7 @@ export const getListingBySlug = async (req, res) => {
       price: listing.price,
       coverImageUrl: listing.coverImageUrl,
       salesCount: listing.salesCount,
+      views,
       ratingAverage: listing.ratingAverage,
       ratingCount: listing.ratingCount,
       createdAt: listing.createdAt,
