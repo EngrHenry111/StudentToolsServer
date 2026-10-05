@@ -57,6 +57,13 @@ status: {
  default: "draft"
 },
 
+// Scheduled go-live time for a draft. jobs/scheduledPublishJob.js flips
+// due drafts to "published"; a manual status change clears it.
+publishAt:{
+ type:Date,
+ index:true
+},
+
 views:{
  type:Number,
  default:0

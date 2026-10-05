@@ -591,7 +591,15 @@ export const updateTutorial = async (req, res) => {
 
   tutorial.image = req.body.image || tutorial.image;
   tutorial.tags = req.body.tags || tutorial.tags;
+  const previousStatus = tutorial.status;
   tutorial.status = req.body.status || tutorial.status;
+
+  // A manual publish/unpublish overrides any schedule, so the hourly job
+  // can't re-publish something the admin deliberately pulled. The edit
+  // pages always send status, so only an actual change counts.
+  if (tutorial.status !== previousStatus) {
+   tutorial.publishAt = undefined;
+  }
 
   if (req.body.focusKeyword != null) {
    tutorial.focusKeyword = String(req.body.focusKeyword).toLowerCase().trim();

@@ -22,6 +22,7 @@ import studyCoachRoutes from "./routes/studyCoachRoutes.js";
 import careerRoutes from "./routes/careerRoutes.js";
 import missionsRoutes from "./routes/missionsRoutes.js";
 import { startScheduledJobs } from "./jobs/streakReminderJob.js";
+import { startScheduledPublishing } from "./jobs/scheduledPublishJob.js";
 import authRoutes from "./routes/authRoute.js";
 import studyPlannerRoutes from "./routes/studyPlannerRoutes.js";
 
@@ -151,5 +152,6 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT,()=>{
  console.log(`Server running on port ${PORT}`);
  startScheduledJobs();
+ startScheduledPublishing();
 });
 
