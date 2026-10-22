@@ -130,7 +130,10 @@ export const submitReview = async (req, res) => {
 
 export const getPublisherStorefront = async (req, res) => {
   try {
-    const publisher = await Publisher.findOne({ slug: req.params.slug, status: "active" });
+    // Public route — only storefront fields. The full document carries the
+    // publisher's bank account and Paystack subaccount details.
+    const publisher = await Publisher.findOne({ slug: req.params.slug, status: "active" })
+      .select("businessName slug description logoUrl createdAt");
     if (!publisher) {
       return res.status(404).json({ message: "Publisher not found" });
     }
