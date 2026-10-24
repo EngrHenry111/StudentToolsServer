@@ -3,7 +3,7 @@ dotenv.config();
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 
 import connectDB from "./config/db.js";
 
@@ -67,11 +67,21 @@ app.use(cors({
 // of the stricter one on auth routes — protects things like AI quiz
 // generation from being hammered by a script (which costs you real
 // Groq API usage) and general abuse.
+//
+// Render sits behind Cloudflare, so req.ip can be a Cloudflare edge address
+// shared by many visitors — key on the real client IP Cloudflare forwards.
+// Public read-only content (tutorials, marketplace listings, publisher
+// storefronts, sitemap) is exempt: Googlebot renders pages by calling these,
+// and a 429 there makes Google see an empty page.
+const PUBLIC_READ = /^\/api\/(tutorials|sitemap|publishers|marketplace\/listings)(\/|$)/;
+
 app.use(rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 300,
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
+  keyGenerator: (req) => ipKeyGenerator(req.headers["cf-connecting-ip"] || req.ip),
+  skip: (req) => req.method === "GET" && PUBLIC_READ.test(req.path)
 }));
 
 // 🔒 CRITICAL: the Paystack webhook needs the RAW, unparsed request body to
