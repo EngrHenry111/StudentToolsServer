@@ -51,12 +51,17 @@ export const generateSitemap = async (req, res) => {
    { url: "/author", changefreq: "yearly", priority: 0.5 }
   ];
 
+  // lastmod must be the date the page's content last changed. Stamping "now"
+  // on every request teaches Google to ignore our lastmod values entirely,
+  // including the real ones on tutorials. Bump this when these pages change.
+  const STATIC_LASTMOD = "2026-10-24";
+
   staticPages.forEach((page) => {
    smStream.write({
     url: page.url,
     changefreq: page.changefreq,
     priority: page.priority,
-    lastmod: new Date().toISOString()
+    lastmod: STATIC_LASTMOD
    });
   });
 

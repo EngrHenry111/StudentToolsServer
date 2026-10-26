@@ -176,7 +176,8 @@ export const getListingBySlug = async (req, res) => {
     const isBot = BOT_UA.test(req.get("user-agent") || "");
     let views = listing.views || 0;
     if (!isOwner && !isBot) {
-      await Listing.updateOne({ _id: listing._id }, { $inc: { views: 1 } });
+      // timestamps: false — a view must not move updatedAt (sitemap lastmod).
+      await Listing.updateOne({ _id: listing._id }, { $inc: { views: 1 } }, { timestamps: false });
       views += 1;
     }
 

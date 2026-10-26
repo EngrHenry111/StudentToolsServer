@@ -382,7 +382,9 @@ export const getTutorialBySlug = async (req, res) => {
   const tutorial = await Tutorial.findOneAndUpdate(
    { slug: req.params.slug, status: "published" },
    { $inc: { views: 1 } },
-   { returnDocument: "after" }
+   // A view is not an edit: keep updatedAt (sitemap lastmod, Article
+   // dateModified) pointing at the last real content change.
+   { returnDocument: "after", timestamps: false }
   );
 
   if (!tutorial) {
