@@ -34,6 +34,8 @@ export const generateSitemap = async (req, res) => {
    { url: "/waec-grade-calculator", changefreq: "monthly", priority: 0.9 },
    { url: "/jamb-score-calculator", changefreq: "monthly", priority: 0.9 },
    { url: "/gpa-class-calculator", changefreq: "monthly", priority: 0.8 },
+   { url: "/age-calculator", changefreq: "monthly", priority: 0.8, lastmod: "2026-10-26" },
+   { url: "/age-tracker", changefreq: "monthly", priority: 0.7, lastmod: "2026-10-26" },
 
    { url: "/study-planner", changefreq: "weekly", priority: 0.7 },
    { url: "/scholarships", changefreq: "weekly", priority: 0.7 },
@@ -53,7 +55,8 @@ export const generateSitemap = async (req, res) => {
 
   // lastmod must be the date the page's content last changed. Stamping "now"
   // on every request teaches Google to ignore our lastmod values entirely,
-  // including the real ones on tutorials. Bump this when these pages change.
+  // including the real ones on tutorials. Bump this (or set a per-page
+  // lastmod) when these pages change.
   const STATIC_LASTMOD = "2026-10-24";
 
   staticPages.forEach((page) => {
@@ -61,7 +64,7 @@ export const generateSitemap = async (req, res) => {
     url: page.url,
     changefreq: page.changefreq,
     priority: page.priority,
-    lastmod: STATIC_LASTMOD
+    lastmod: page.lastmod || STATIC_LASTMOD
    });
   });
 
