@@ -45,6 +45,15 @@ export const generateSitemap = async (req, res) => {
    { url: "/engineering-tools/voltage-divider-calculator", changefreq: "monthly", priority: 0.7, lastmod: "2026-10-27" },
    { url: "/engineering-tools/led-resistor-calculator", changefreq: "monthly", priority: 0.7, lastmod: "2026-10-27" },
    { url: "/engineering-tools/555-timer-calculator", changefreq: "monthly", priority: 0.7, lastmod: "2026-10-27" },
+   { url: "/engineering-tools/solar-system-calculator", changefreq: "monthly", priority: 0.8, lastmod: "2026-10-27" },
+   { url: "/engineering-tools/inverter-size-calculator", changefreq: "monthly", priority: 0.8, lastmod: "2026-10-27" },
+   { url: "/engineering-tools/battery-backup-calculator", changefreq: "monthly", priority: 0.8, lastmod: "2026-10-27" },
+   { url: "/cgpa-converter", changefreq: "monthly", priority: 0.8, lastmod: "2026-10-27" },
+   { url: "/aggregate-score-calculator", changefreq: "monthly", priority: 0.9, lastmod: "2026-10-27" },
+   // Slugs mirror UNIVERSITIES in the client's src/utils/aggregate.js.
+   ...["unilag", "ui", "oau", "unn", "uniben", "uniport", "unilorin", "lasu", "abu", "unical"].map((slug) => ({
+     url: `/aggregate-score-calculator/${slug}`, changefreq: "monthly", priority: 0.8, lastmod: "2026-10-27"
+   })),
 
    { url: "/study-planner", changefreq: "weekly", priority: 0.7 },
    { url: "/scholarships", changefreq: "weekly", priority: 0.7 },
