@@ -50,7 +50,12 @@ export const generateSitemap = async (req, res) => {
    { url: "/engineering-tools/battery-backup-calculator", changefreq: "monthly", priority: 0.8, lastmod: "2026-10-27" },
    { url: "/cgpa-converter", changefreq: "monthly", priority: 0.8, lastmod: "2026-10-27" },
    { url: "/aggregate-score-calculator", changefreq: "monthly", priority: 0.9, lastmod: "2026-10-27" },
-   // Slugs mirror UNIVERSITIES in the client's src/utils/aggregate.js.
+   { url: "/jamb-cbt-practice", changefreq: "monthly", priority: 0.9, lastmod: "2026-10-27" },
+  // Slugs mirror SUBJECTS in the client's src/utils/cbt/index.js.
+  ...["mathematics", "physics", "chemistry", "biology"].map((slug) => ({
+    url: `/jamb-cbt-practice/${slug}`, changefreq: "monthly", priority: 0.8, lastmod: "2026-10-27"
+  })),
+  // Slugs mirror UNIVERSITIES in the client's src/utils/aggregate.js.
    ...["unilag", "ui", "oau", "unn", "uniben", "uniport", "unilorin", "lasu", "abu", "unical"].map((slug) => ({
      url: `/aggregate-score-calculator/${slug}`, changefreq: "monthly", priority: 0.8, lastmod: "2026-10-27"
    })),
