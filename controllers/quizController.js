@@ -203,13 +203,24 @@ export const getPastQuestions = async (req, res) => {
       });
     }
 
+    // Shuffle options per request so the answer's position can't be learnt.
+    // Grading compares the chosen text with correctAnswer, so order is free.
+    const shuffle = (arr) => {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    };
+
     const safe = questions.map(q => ({
       id: q._id,
       subject: q.subject,
       topic: q.topic,
       examBody: q.examBody,
       question: q.question,
-      options: q.options
+      options: shuffle(q.options)
     }));
 
     res.json(safe);

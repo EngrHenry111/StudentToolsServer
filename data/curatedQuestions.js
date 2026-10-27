@@ -7,6 +7,8 @@
 // to load these into the database. Add more over time by appending here
 // and re-running the script (it skips duplicates).
 
+import { batchQuestions } from "./curated/index.js";
+
 export const curatedQuestions = [
 
   // ===================== MATHEMATICS =====================
@@ -199,5 +201,8 @@ export const curatedQuestions = [
     options: ["Dominant", "Recessive", "Homozygous", "Codominant"],
     correctAnswer: "Dominant",
     explanation: "A dominant allele masks the effect of a recessive allele when both are present."
-  }
+  },
+
+  // Batch files in data/curated/ (compact format, expanded by index.js)
+  ...batchQuestions
 ];
