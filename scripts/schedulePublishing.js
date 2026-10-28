@@ -3,6 +3,7 @@
 //
 // Dry run:  node scripts/schedulePublishing.js
 // Apply:    node scripts/schedulePublishing.js --apply [--per-day 5] [--start 2026-10-05]
+//           (--per-day up to 24; above 6 the times are spread 07:00–22:00 WAT)
 //
 // Drafts are taken oldest first and interleaved across the categories below,
 // so each day mixes subjects. Already-scheduled drafts are left alone.
@@ -25,13 +26,20 @@ const APPLY = process.argv.includes("--apply");
 const perDay = Number(arg("--per-day", 5));
 const start = arg("--start", new Date().toISOString().slice(0, 10));
 
-if (!(perDay >= 1 && perDay <= SLOT_MINUTES_WAT.length)) {
-  throw new Error(`--per-day must be between 1 and ${SLOT_MINUTES_WAT.length}`);
+const MAX_PER_DAY = 24;
+if (!(perDay >= 1 && perDay <= MAX_PER_DAY)) {
+  throw new Error(`--per-day must be between 1 and ${MAX_PER_DAY}`);
 }
+
+// Up to 6 a day use the fixed slots above; more than that are spread evenly
+// from 07:00 to 22:00 WAT.
+const slotsWat = perDay <= SLOT_MINUTES_WAT.length
+  ? SLOT_MINUTES_WAT
+  : Array.from({ length: perDay }, (_, i) => 420 + Math.round((i * 900) / (perDay - 1)));
 
 const slotTime = (index) => {
   const day = Math.floor(index / perDay);
-  const minutesWat = SLOT_MINUTES_WAT[index % perDay];
+  const minutesWat = slotsWat[index % perDay];
   const date = new Date(`${start}T00:00:00Z`);
   date.setUTCDate(date.getUTCDate() + day);
   date.setUTCMinutes(minutesWat - 60);          // WAT -> UTC
