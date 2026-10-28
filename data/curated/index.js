@@ -13,13 +13,23 @@ import physics2 from "./jamb-physics-2.js";
 import chemistry2 from "./jamb-chemistry-2.js";
 import biology2 from "./jamb-biology-2.js";
 import englishLanguage2 from "./jamb-english-2.js";
+import waecMathematics from "./waec-mathematics.js";
+import waecPhysics from "./waec-physics.js";
+import waecChemistry from "./waec-chemistry.js";
+import waecBiology from "./waec-biology.js";
+import waecEnglishLanguage from "./waec-english.js";
 
 const BATCHES = [
   { examBody: "JAMB", subject: "mathematics", items: [...mathematics, ...mathematics2] },
   { examBody: "JAMB", subject: "physics", items: [...physics, ...physics2] },
   { examBody: "JAMB", subject: "chemistry", items: [...chemistry, ...chemistry2] },
   { examBody: "JAMB", subject: "biology", items: [...biology, ...biology2] },
-  { examBody: "JAMB", subject: "englishLanguage", items: [...englishLanguage, ...englishLanguage2] }
+  { examBody: "JAMB", subject: "englishLanguage", items: [...englishLanguage, ...englishLanguage2] },
+  { examBody: "WAEC", subject: "mathematics", items: waecMathematics },
+  { examBody: "WAEC", subject: "physics", items: waecPhysics },
+  { examBody: "WAEC", subject: "chemistry", items: waecChemistry },
+  { examBody: "WAEC", subject: "biology", items: waecBiology },
+  { examBody: "WAEC", subject: "englishLanguage", items: waecEnglishLanguage }
 ];
 
 export const batchQuestions = BATCHES.flatMap(({ examBody, subject, items }) =>

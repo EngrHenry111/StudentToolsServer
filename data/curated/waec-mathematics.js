@@ -1,0 +1,138 @@
+// WAEC-style Mathematics (SSCE objective paper). Original questions (not
+// copied from past papers). Format: t topic, d difficulty, q question,
+// o options, a index of the correct option, x explanation. Loaded by
+// data/curated/index.js.
+
+export default [
+  // Algebra (number bases, surds, modular arithmetic, variation, sequences, matrices, commercial arithmetic)
+  { t: "Algebra", d: "easy", q: "Convert 213 in base four to a number in base ten.", o: ["39", "35", "43", "27"], a: 0, x: "213₄ = 2 × 4² + 1 × 4 + 3 = 32 + 4 + 3 = 39." },
+  { t: "Algebra", q: "If 23 in base x equals 17 in base ten, find x.", o: ["5", "6", "7", "8"], a: 2, x: "23ₓ = 2x + 3 = 17, so 2x = 14 and x = 7." },
+  { t: "Algebra", q: "Add 1101 and 111, both in base two, giving the answer in base two.", o: ["11100", "10100", "10010", "11000"], a: 1, x: "1101₂ = 13 and 111₂ = 7. 13 + 7 = 20 = 16 + 4 = 10100₂." },
+  { t: "Algebra", q: "Simplify √75 − √27 + √12.", o: ["2√3", "6√3", "4√3", "√60"], a: 2, x: "√75 = 5√3, √27 = 3√3 and √12 = 2√3, so the result is 5√3 − 3√3 + 2√3 = 4√3." },
+  { t: "Algebra", d: "easy", q: "Rationalise the denominator of 6/√3.", o: ["3√2", "2√3", "√3", "6√3"], a: 1, x: "6/√3 × √3/√3 = 6√3/3 = 2√3." },
+  { t: "Algebra", d: "easy", q: "Find the remainder when 47 is divided by 6, that is, 47 (mod 6).", o: ["1", "3", "5", "2"], a: 2, x: "47 = 6 × 7 + 5, so 47 ≡ 5 (mod 6)." },
+  { t: "Algebra", q: "Solve 3x ≡ 2 (mod 5) for 0 ≤ x < 5.", o: ["1", "2", "3", "4"], a: 3, x: "Try each value: 3 × 4 = 12 = 2 × 5 + 2, so x = 4." },
+  { t: "Algebra", q: "y varies inversely as the square of x. If y = 4 when x = 3, find y when x = 6.", o: ["2", "1", "8", "1/2"], a: 1, x: "y = k/x². 4 = k/9 gives k = 36, so y = 36/36 = 1." },
+  { t: "Algebra", q: "The 5th term of an arithmetic progression is 17 and the 9th term is 29. Find the 20th term.", o: ["62", "59", "65", "60"], a: 0, x: "a + 4d = 17 and a + 8d = 29 give 4d = 12, d = 3, a = 5. T₂₀ = 5 + 19 × 3 = 62." },
+  { t: "Algebra", q: "Find the sum of the first 6 terms of the geometric progression 3, 6, 12, …", o: ["192", "96", "381", "189"], a: 3, x: "S₆ = a(r⁶ − 1)/(r − 1) = 3(64 − 1)/1 = 189." },
+  { t: "Algebra", d: "easy", q: "Find the determinant of the matrix with rows (3 2) and (4 5).", o: ["7", "23", "−7", "2"], a: 0, x: "Determinant = 3 × 5 − 2 × 4 = 15 − 8 = 7." },
+  { t: "Algebra", d: "easy", q: "Calculate the simple interest on ₦25,000 at 8% per annum for 3 years.", o: ["₦6,000", "₦2,000", "₦7,500", "₦31,000"], a: 0, x: "I = PRT/100 = 25,000 × 8 × 3 / 100 = ₦6,000." },
+  { t: "Algebra", q: "Find the amount after 2 years when ₦10,000 is invested at 10% compound interest per annum.", o: ["₦12,000", "₦12,100", "₦2,100", "₦11,000"], a: 1, x: "A = 10,000 × 1.1² = 10,000 × 1.21 = ₦12,100." },
+  { t: "Algebra", d: "easy", q: "A trader buys a radio for ₦800 and sells it for ₦1,040. Find the percentage profit.", o: ["23%", "30%", "240%", "77%"], a: 1, x: "Profit = ₦240. Percentage profit = 240/800 × 100 = 30% (profit is based on the cost price, not the selling price)." },
+
+  // Quadratic Equations
+  { t: "Quadratic Equations", d: "easy", q: "Solve x² − 7x + 12 = 0.", o: ["x = 3 or 4", "x = −3 or −4", "x = 2 or 6", "x = 1 or 12"], a: 0, x: "x² − 7x + 12 = (x − 3)(x − 4) = 0, so x = 3 or x = 4." },
+  { t: "Quadratic Equations", q: "Solve 3x² − 5x − 2 = 0.", o: ["x = −2 or 1/3", "x = 2 or −1/3", "x = 2 or 1/3", "x = −2 or −1/3"], a: 1, x: "3x² − 5x − 2 = (3x + 1)(x − 2) = 0, so x = 2 or x = −1/3." },
+  { t: "Quadratic Equations", q: "Find the quadratic equation whose roots are 3/2 and −1.", o: ["2x² + x − 3 = 0", "2x² − x + 3 = 0", "2x² − x − 3 = 0", "2x² + x + 3 = 0"], a: 2, x: "(2x − 3)(x + 1) = 2x² + 2x − 3x − 3 = 2x² − x − 3." },
+  { t: "Quadratic Equations", d: "hard", q: "If α and β are the roots of 2x² − 6x + 1 = 0, find 1/α + 1/β.", o: ["6", "3", "1/6", "−6"], a: 0, x: "α + β = 3 and αβ = 1/2. 1/α + 1/β = (α + β)/αβ = 3 ÷ 1/2 = 6." },
+  { t: "Quadratic Equations", d: "easy", q: "Solve the equation x² = 5x.", o: ["x = 5 only", "x = 0 or 5", "x = 0 or −5", "x = ±√5"], a: 1, x: "x² − 5x = x(x − 5) = 0, so x = 0 or x = 5. Dividing by x would lose the root x = 0." },
+  { t: "Quadratic Equations", q: "Find the value of c that makes x² + 6x + c a perfect square.", o: ["9", "36", "3", "12"], a: 0, x: "Add the square of half the coefficient of x: (6/2)² = 9, giving (x + 3)²." },
+  { t: "Quadratic Equations", q: "Use the formula method to solve x² − 4x − 1 = 0.", o: ["−2 ± √5", "4 ± √5", "2 ± √3", "2 ± √5"], a: 3, x: "x = [4 ± √(16 + 4)]/2 = (4 ± 2√5)/2 = 2 ± √5." },
+  { t: "Quadratic Equations", q: "The length of a rectangle is 3 m more than its width and its area is 40 m². Find the width.", o: ["8 m", "4 m", "5 m", "10 m"], a: 2, x: "w(w + 3) = 40 gives w² + 3w − 40 = (w + 8)(w − 5) = 0. A width cannot be negative, so w = 5 m." },
+  { t: "Quadratic Equations", d: "hard", q: "Find the minimum value of x² − 6x + 13.", o: ["13", "4", "3", "−4"], a: 1, x: "Completing the square: x² − 6x + 13 = (x − 3)² + 4. The square is never negative, so the minimum is 4 (at x = 3)." },
+  { t: "Quadratic Equations", q: "One root of x² + px + 6 = 0 is 2. Find p.", o: ["5", "−5", "−3", "3"], a: 1, x: "Substitute x = 2: 4 + 2p + 6 = 0, so 2p = −10 and p = −5." },
+  { t: "Quadratic Equations", q: "Solve (x − 2)(x + 3) = 6.", o: ["x = 3 or −4", "x = 2 or −3", "x = −3 or 4", "x = 4 or 6"], a: 0, x: "Expand: x² + x − 6 = 6, so x² + x − 12 = (x + 4)(x − 3) = 0, giving x = 3 or x = −4. (Setting each bracket equal to 6 is a common mistake.)" },
+
+  // Trigonometry (including bearings)
+  { t: "Trigonometry", d: "easy", q: "A boat sails 8 km due north and then 6 km due east. How far is it from its starting point?", o: ["14 km", "10 km", "12 km", "2 km"], a: 1, x: "The two legs are at right angles, so the distance is √(8² + 6²) = √100 = 10 km." },
+  { t: "Trigonometry", q: "The bearing of B from A is 065°. Find the bearing of A from B.", o: ["115°", "295°", "245°", "025°"], a: 2, x: "A back bearing differs by 180°: 065° + 180° = 245°." },
+  { t: "Trigonometry", d: "easy", q: "Express the bearing N40°E as a three-figure bearing.", o: ["040°", "140°", "320°", "050°"], a: 0, x: "N40°E is 40° measured clockwise from north, which is 040°." },
+  { t: "Trigonometry", q: "Find the value of cos 300°.", o: ["−1/2", "√3/2", "1/2", "−√3/2"], a: 2, x: "300° is in the fourth quadrant, where cosine is positive: cos 300° = cos 60° = 1/2." },
+  { t: "Trigonometry", q: "Evaluate cos² 45° + sin² 60°.", o: ["5/4", "1", "3/4", "7/4"], a: 0, x: "cos 45° = 1/√2, so cos² 45° = 1/2. sin 60° = √3/2, so sin² 60° = 3/4. 1/2 + 3/4 = 5/4." },
+  { t: "Trigonometry", q: "If cos x = 0.6 and x is acute, find tan x.", o: ["3/4", "4/3", "4/5", "5/3"], a: 1, x: "cos x = 3/5, so the opposite side is √(5² − 3²) = 4 and tan x = 4/3." },
+  { t: "Trigonometry", d: "hard", q: "The sides of triangle XYZ are x = 7 cm, y = 5 cm and z = 3 cm. Find the largest angle of the triangle.", o: ["120°", "60°", "90°", "150°"], a: 0, x: "The largest angle X is opposite the longest side. cos X = (5² + 3² − 7²)/(2 × 5 × 3) = −15/30 = −1/2, so X = 120°." },
+  { t: "Trigonometry", q: "Find the area of a parallelogram with adjacent sides 8 cm and 5 cm and an angle of 30° between them.", o: ["20 cm²", "40 cm²", "10 cm²", "20√3 cm²"], a: 0, x: "Area = ab sin θ = 8 × 5 × sin 30° = 40 × ½ = 20 cm² (twice the area of each triangle formed by a diagonal)." },
+  { t: "Trigonometry", q: "From the top of a cliff 30 m high, the angle of depression of a boat is 45°. How far is the boat from the foot of the cliff?", o: ["30√2 m", "15 m", "30√3 m", "30 m"], a: 3, x: "tan 45° = 30/d = 1, so d = 30 m." },
+  { t: "Trigonometry", d: "easy", q: "Convert 5π/6 radians to degrees.", o: ["150°", "120°", "135°", "210°"], a: 0, x: "π radians = 180°, so 5π/6 = 5 × 180°/6 = 150°." },
+  { t: "Trigonometry", q: "Solve tan θ = −1 for 0° ≤ θ ≤ 360°.", o: ["45° and 225°", "135° and 315°", "135° and 225°", "225° and 315°"], a: 1, x: "Tangent is negative in the second and fourth quadrants: θ = 180° − 45° = 135° or 360° − 45° = 315°." },
+
+  // Calculus
+  { t: "Calculus", d: "easy", q: "Differentiate y = 5x³ − 4x + 7 with respect to x.", o: ["15x² − 4", "15x² − 4x", "5x² − 4", "15x³ − 4"], a: 0, x: "d/dx(5x³) = 15x², d/dx(−4x) = −4 and the constant 7 gives 0." },
+  { t: "Calculus", q: "Find the gradient of the curve y = x² + 3x at the point (1, 4).", o: ["4", "5", "3", "7"], a: 1, x: "dy/dx = 2x + 3. At x = 1 the gradient is 2 + 3 = 5." },
+  { t: "Calculus", q: "Find dy/dx if y = 4/x.", o: ["4/x²", "−4/x", "−4/x²", "4 ln x"], a: 2, x: "y = 4x⁻¹, so dy/dx = −4x⁻² = −4/x²." },
+  { t: "Calculus", d: "easy", q: "Find ∫(4x³ + 2x) dx.", o: ["12x² + 2 + c", "x⁴ + 2x² + c", "4x⁴ + x² + c", "x⁴ + x² + c"], a: 3, x: "Raise each power by one and divide by the new power: 4x⁴/4 + 2x²/2 + c = x⁴ + x² + c." },
+  { t: "Calculus", q: "Evaluate the integral of 2x from x = 1 to x = 3.", o: ["8", "9", "6", "4"], a: 0, x: "∫2x dx = x². [x²] from 1 to 3 = 9 − 1 = 8." },
+  { t: "Calculus", q: "Find the coordinates of the turning point of y = x² − 8x + 3.", o: ["(4, −13)", "(−4, 51)", "(4, 13)", "(8, 3)"], a: 0, x: "dy/dx = 2x − 8 = 0 gives x = 4. Then y = 16 − 32 + 3 = −13." },
+  { t: "Calculus", q: "The displacement of a particle is s = t³ − 3t² + 4t metres. Find its velocity when t = 2 s.", o: ["8 m/s", "0 m/s", "4 m/s", "2 m/s"], a: 2, x: "v = ds/dt = 3t² − 6t + 4. At t = 2: 12 − 12 + 4 = 4 m/s." },
+  { t: "Calculus", q: "Find the area between the curve y = x² and the x-axis from x = 0 to x = 3.", o: ["27", "9", "3", "6"], a: 1, x: "Area = ∫x² dx from 0 to 3 = [x³/3] = 27/3 − 0 = 9 square units." },
+  { t: "Calculus", q: "Differentiate y = (3x − 2)(x + 4) with respect to x.", o: ["6x + 10", "3x + 10", "6x − 8", "3"], a: 0, x: "Expand: y = 3x² + 10x − 8, so dy/dx = 6x + 10." },
+  { t: "Calculus", d: "hard", q: "Find the equation of the tangent to the curve y = x² at the point where x = 3.", o: ["y = 6x − 9", "y = 6x + 9", "y = 3x", "y = 6x − 3"], a: 0, x: "The point is (3, 9) and the gradient is 2x = 6. y − 9 = 6(x − 3), so y = 6x − 9." },
+
+  // Probability (including permutations and combinations)
+  { t: "Probability", q: "A number is chosen at random from the whole numbers 1 to 20. Find the probability that it is a prime number.", o: ["2/5", "1/2", "9/20", "3/10"], a: 0, x: "The primes are 2, 3, 5, 7, 11, 13, 17 and 19: 8 out of 20, which is 2/5." },
+  { t: "Probability", d: "easy", q: "Two fair coins are tossed. Find the probability of getting at least one head.", o: ["1/2", "1/4", "3/4", "1"], a: 2, x: "The outcomes are HH, HT, TH, TT. Only TT has no head, so P = 1 − 1/4 = 3/4." },
+  { t: "Probability", d: "easy", q: "A box contains 4 white and 6 black balls. One ball is picked at random. What is the probability that it is not white?", o: ["2/5", "3/5", "1/6", "2/3"], a: 1, x: "6 of the 10 balls are not white: 6/10 = 3/5." },
+  { t: "Probability", q: "The probabilities that Ada and Bayo pass an examination are 2/3 and 3/5. Find the probability that both of them fail.", o: ["2/15", "2/5", "1/15", "13/15"], a: 0, x: "P(Ada fails) = 1/3 and P(Bayo fails) = 2/5. Both fail: 1/3 × 2/5 = 2/15." },
+  { t: "Probability", d: "hard", q: "The probabilities that Chidi and Dupe hit a target are 1/4 and 2/5. Find the probability that exactly one of them hits it.", o: ["1/10", "9/20", "11/20", "13/20"], a: 1, x: "Chidi only: 1/4 × 3/5 = 3/20. Dupe only: 3/4 × 2/5 = 6/20. Total = 9/20." },
+  { t: "Probability", d: "easy", q: "A fair die is thrown once. What is the probability of getting a number greater than 4?", o: ["1/2", "2/3", "1/6", "1/3"], a: 3, x: "Only 5 and 6 are greater than 4: 2/6 = 1/3." },
+  { t: "Probability", q: "Two fair dice are thrown. Find the probability that the sum of the scores is 9.", o: ["1/9", "1/12", "1/6", "5/36"], a: 0, x: "(3,6), (4,5), (5,4) and (6,3) give 9: 4 of 36 outcomes, which is 1/9." },
+  { t: "Probability", q: "A letter is chosen at random from the word MATHEMATICS. Find the probability that it is M.", o: ["1/11", "2/11", "3/11", "2/9"], a: 1, x: "The word has 11 letters and two of them are M: 2/11." },
+  { t: "Probability", d: "hard", q: "A bag has 3 red and 5 green beads. Two are drawn one after the other with replacement. Find the probability of getting one red and one green bead in any order.", o: ["15/64", "15/32", "15/56", "1/2"], a: 1, x: "P(RG) + P(GR) = 3/8 × 5/8 + 5/8 × 3/8 = 30/64 = 15/32." },
+  { t: "Probability", q: "How many three-digit numbers can be formed from the digits 1, 2, 3, 4 and 5 if no digit may be repeated?", o: ["60", "125", "10", "20"], a: 0, x: "There are 5 choices for the first digit, 4 for the second and 3 for the third: 5 × 4 × 3 = 60." },
+  { t: "Probability", d: "hard", q: "A committee of 2 men and 1 woman is to be chosen from 4 men and 3 women. In how many ways can this be done?", o: ["18", "35", "12", "24"], a: 0, x: "Choose the men in ⁴C₂ = 6 ways and the woman in ³C₁ = 3 ways: 6 × 3 = 18." },
+
+  // Statistics
+  { t: "Statistics", d: "easy", q: "Find the mode of 3, 5, 7, 5, 8, 5, 3, 9.", o: ["3", "5", "7", "8"], a: 1, x: "5 occurs three times, more than any other number." },
+  { t: "Statistics", q: "Find the median of 12, 7, 9, 15, 10, 8.", o: ["9", "10", "9.5", "10.5"], a: 2, x: "In order: 7, 8, 9, 10, 12, 15. With six numbers the median is the mean of the middle two: (9 + 10)/2 = 9.5." },
+  { t: "Statistics", q: "The mean of x, x + 2, x + 4 and x + 6 is 10. Find x.", o: ["5", "6", "7", "8"], a: 2, x: "(4x + 12)/4 = x + 3 = 10, so x = 7." },
+  { t: "Statistics", d: "easy", q: "Find the range of 23, 17, 31, 12, 28.", o: ["19", "14", "11", "31"], a: 0, x: "Range = largest − smallest = 31 − 12 = 19." },
+  { t: "Statistics", q: "The scores 1, 2, 3 and 4 occur with frequencies 3, 5, 8 and 4. Find the mean score.", o: ["2.5", "2.65", "2.75", "3"], a: 1, x: "Σfx = 3 + 10 + 24 + 16 = 53 and Σf = 20, so the mean is 53/20 = 2.65." },
+  { t: "Statistics", q: "In a class of 40 students, 15 like football. Find the angle of the football sector in a pie chart.", o: ["135°", "150°", "120°", "15°"], a: 0, x: "15/40 × 360° = 135°." },
+  { t: "Statistics", q: "Find the variance of 2, 4, 6, 8.", o: ["5", "√5", "20", "4"], a: 0, x: "The mean is 5. Squared deviations: 9, 1, 1, 9, total 20. Variance = 20/4 = 5." },
+  { t: "Statistics", d: "hard", q: "Find the standard deviation of 1, 3, 5, 7, 9.", o: ["8", "2√2", "√10", "4"], a: 1, x: "The mean is 5. Squared deviations: 16, 4, 0, 4, 16, total 40. Variance = 40/5 = 8, so the standard deviation is √8 = 2√2." },
+  { t: "Statistics", q: "The mean of five numbers is 12. When one number is removed, the mean of the rest is 11. Find the number removed.", o: ["12", "16", "1", "14"], a: 1, x: "Total of five = 60 and total of four = 44, so the number removed is 60 − 44 = 16." },
+  { t: "Statistics", q: "In a histogram, the area of each bar is proportional to the", o: ["class width", "frequency", "class mark", "cumulative frequency"], a: 1, x: "A histogram shows frequency by area, which matters when the class widths are unequal." },
+
+  // Geometry (plane shapes, circle theorems, mensuration, coordinate geometry)
+  { t: "Geometry", d: "easy", q: "Find the size of each interior angle of a regular octagon.", o: ["120°", "135°", "140°", "150°"], a: 1, x: "Each exterior angle is 360°/8 = 45°, so each interior angle is 180° − 45° = 135°." },
+  { t: "Geometry", q: "Each exterior angle of a regular polygon is 24°. How many sides does it have?", o: ["12", "15", "18", "20"], a: 1, x: "Number of sides = 360°/24° = 15." },
+  { t: "Geometry", q: "O is the centre of a circle and AB is a chord with angle AOB = 140°. Find angle OAB.", o: ["20°", "40°", "70°", "140°"], a: 0, x: "OA = OB (radii), so triangle OAB is isosceles: angle OAB = (180° − 140°)/2 = 20°." },
+  { t: "Geometry", q: "PQRS is a cyclic quadrilateral with angle P = 72°. Find angle R.", o: ["72°", "108°", "118°", "288°"], a: 1, x: "Opposite angles of a cyclic quadrilateral add up to 180°: 180° − 72° = 108°." },
+  { t: "Geometry", q: "Find the length of an arc of a circle of radius 7 cm that subtends 90° at the centre. (Take π = 22/7.)", o: ["11 cm", "22 cm", "44 cm", "38.5 cm"], a: 0, x: "Arc = (90/360) × 2 × 22/7 × 7 = ¼ × 44 = 11 cm." },
+  { t: "Geometry", q: "Find the area of a sector of a circle of radius 14 cm with angle 45°. (Take π = 22/7.)", o: ["77 cm²", "154 cm²", "11 cm²", "38.5 cm²"], a: 0, x: "Area = (45/360) × 22/7 × 14² = ⅛ × 616 = 77 cm²." },
+  { t: "Geometry", q: "Find the volume of a cylinder of radius 3.5 cm and height 10 cm. (Take π = 22/7.)", o: ["110 cm³", "385 cm³", "770 cm³", "220 cm³"], a: 1, x: "V = πr²h = 22/7 × 3.5 × 3.5 × 10 = 385 cm³." },
+  { t: "Geometry", q: "Find the curved surface area of a cone of base radius 6 cm and slant height 10 cm, leaving your answer in terms of π.", o: ["60π cm²", "96π cm²", "36π cm²", "120π cm²"], a: 0, x: "Curved surface area = πrl = π × 6 × 10 = 60π cm². (96π would include the base.)" },
+  { t: "Geometry", q: "Find the volume of a sphere of radius 3 cm in terms of π.", o: ["36π cm³", "27π cm³", "12π cm³", "108π cm³"], a: 0, x: "V = 4/3 πr³ = 4/3 × π × 27 = 36π cm³." },
+  { t: "Geometry", q: "P is the point (−3, 4) and Q is (3, −4). Find the length of PQ.", o: ["10", "14", "0", "√28"], a: 0, x: "PQ = √[(3 − (−3))² + (−4 − 4)²] = √(36 + 64) = √100 = 10." },
+  { t: "Geometry", d: "easy", q: "Find the midpoint of the line joining (−4, 6) and (2, −2).", o: ["(−1, 2)", "(−3, 4)", "(−2, 4)", "(3, −4)"], a: 0, x: "Midpoint = ((−4 + 2)/2, (6 + (−2))/2) = (−1, 2)." },
+  { t: "Geometry", q: "Find the gradient of the line 3x − 2y + 6 = 0.", o: ["−3/2", "3/2", "2/3", "3"], a: 1, x: "Rearrange: 2y = 3x + 6, so y = (3/2)x + 3 and the gradient is 3/2." },
+  { t: "Geometry", q: "A point is 13 cm from the centre of a circle of radius 5 cm. Find the length of a tangent from the point to the circle.", o: ["12 cm", "8 cm", "18 cm", "√194 cm"], a: 0, x: "The tangent is perpendicular to the radius, so its length is √(13² − 5²) = √144 = 12 cm." },
+  { t: "Geometry", q: "AB is a diameter of a circle and C is a point on the circle. If angle CAB = 35°, find angle ABC.", o: ["35°", "55°", "90°", "145°"], a: 1, x: "The angle in a semicircle is 90°, so angle ACB = 90° and angle ABC = 180° − 90° − 35° = 55°." },
+
+  // Indices and Logarithms (including standard form and significant figures)
+  { t: "Indices and Logarithms", q: "Evaluate 27^(−2/3).", o: ["9", "−9", "1/9", "−1/9"], a: 2, x: "27^(1/3) = 3, so 27^(2/3) = 9 and the negative index gives 1/9." },
+  { t: "Indices and Logarithms", d: "hard", q: "Solve 4^(x − 1) = 8^x.", o: ["−2", "2", "−1", "1/2"], a: 0, x: "Write both sides as powers of 2: 2^(2x − 2) = 2^(3x), so 2x − 2 = 3x and x = −2." },
+  { t: "Indices and Logarithms", q: "Solve 9^x = 27.", o: ["3/2", "2/3", "3", "1/3"], a: 0, x: "Write both as powers of 3: 3^(2x) = 3³, so 2x = 3 and x = 3/2." },
+  { t: "Indices and Logarithms", d: "easy", q: "Evaluate log₁₀ 25 + log₁₀ 4.", o: ["2", "1", "log₁₀ 29", "100"], a: 0, x: "log 25 + log 4 = log(25 × 4) = log 100 = 2." },
+  { t: "Indices and Logarithms", q: "Given that log 2 = 0.3010 and log 3 = 0.4771, find log 18.", o: ["1.2552", "0.7781", "1.0791", "0.9542"], a: 0, x: "18 = 2 × 3², so log 18 = 0.3010 + 2 × 0.4771 = 1.2552." },
+  { t: "Indices and Logarithms", d: "easy", q: "If log₃ x = 4, find x.", o: ["12", "64", "81", "7"], a: 2, x: "log₃ x = 4 means x = 3⁴ = 81." },
+  { t: "Indices and Logarithms", q: "Simplify (a³b²)² ÷ a⁴b.", o: ["a²b³", "a¹⁰b⁵", "a²b", "ab³"], a: 0, x: "(a³b²)² = a⁶b⁴. Dividing by a⁴b gives a⁶⁻⁴b⁴⁻¹ = a²b³." },
+  { t: "Indices and Logarithms", d: "easy", q: "Express 0.000357 in standard form.", o: ["3.57 × 10⁻³", "3.57 × 10⁻⁴", "35.7 × 10⁻⁵", "3.57 × 10⁴"], a: 1, x: "Move the decimal point 4 places to the right to get 3.57, so the number is 3.57 × 10⁻⁴." },
+  { t: "Indices and Logarithms", q: "Solve log₂(x + 3) = 3.", o: ["5", "3", "6", "9"], a: 0, x: "x + 3 = 2³ = 8, so x = 5." },
+  { t: "Indices and Logarithms", q: "Simplify log₅ 125 − log₅ 5.", o: ["2", "3", "25", "1"], a: 0, x: "log₅ 125 = 3 and log₅ 5 = 1, so the answer is 3 − 1 = 2." },
+  { t: "Indices and Logarithms", d: "easy", q: "Write 0.0048562 correct to 3 significant figures.", o: ["0.005", "0.00485", "0.00486", "0.0049"], a: 2, x: "The first significant figure is 4. Keep 4, 8, 5; the next digit is 6, so round up to 0.00486." },
+
+  // Sets (including logic)
+  { t: "Sets", d: "easy", q: "U = {a, b, c, d, e, f, g, h} and B = {a, e}. Find n(B′).", o: ["6", "2", "8", "10"], a: 0, x: "B′ contains the 8 − 2 = 6 letters of U that are not in B." },
+  { t: "Sets", q: "If n(A ∪ B) = 30, n(A) = 18 and n(B) = 20, find n(A ∩ B).", o: ["8", "2", "12", "38"], a: 0, x: "n(A ∩ B) = n(A) + n(B) − n(A ∪ B) = 18 + 20 − 30 = 8." },
+  { t: "Sets", q: "In a class of 40, 25 study Physics, 20 study Chemistry and 8 study neither. How many study both?", o: ["13", "5", "12", "8"], a: 0, x: "32 study at least one subject. 25 + 20 − x = 32, so x = 13." },
+  { t: "Sets", q: "A set has 32 subsets. How many elements does it have?", o: ["5", "16", "6", "4"], a: 0, x: "A set with n elements has 2ⁿ subsets, and 2⁵ = 32, so n = 5." },
+  { t: "Sets", q: "List the members of P = {x : 2 < x ≤ 7, x is an integer}.", o: ["{3, 4, 5, 6, 7}", "{2, 3, 4, 5, 6, 7}", "{3, 4, 5, 6}", "{2, 3, 4, 5, 6}"], a: 0, x: "x must be greater than 2 (so 2 is excluded) and at most 7 (so 7 is included)." },
+  { t: "Sets", d: "easy", q: "If P = {1, 2, 3} and Q = {2, 3, 4, 5}, find P ∪ Q.", o: ["{1, 2, 3, 4, 5}", "{2, 3}", "{1, 4, 5}", "{1, 2, 2, 3, 3, 4, 5}"], a: 0, x: "The union contains every element in P or Q, each listed once." },
+  { t: "Sets", q: "Which statement is the contrapositive of 'If it rains, the ground is wet'?", o: ["If the ground is wet, it rained.", "If it does not rain, the ground is not wet.", "If the ground is not wet, it did not rain.", "It rains and the ground is not wet."], a: 2, x: "The contrapositive of 'if p then q' is 'if not q then not p'. It is always equivalent to the original statement." },
+  { t: "Sets", q: "If p is true and q is false, which of these statements is true?", o: ["p ∧ q", "p → q", "~p", "p ∨ q"], a: 3, x: "p ∨ q is true when at least one part is true. p ∧ q and p → q are false, and ~p is false." },
+  { t: "Sets", q: "n(U) = 50, n(A) = 28, n(B) = 30 and 2 elements are in neither A nor B. Find n(A ∩ B).", o: ["10", "8", "12", "20"], a: 0, x: "n(A ∪ B) = 50 − 2 = 48 = 28 + 30 − n(A ∩ B), so n(A ∩ B) = 10." },
+  { t: "Sets", q: "Which of these statements is true for every set A?", o: ["∅ ⊆ A", "A ⊆ ∅", "A ∩ ∅ = A", "A ∪ ∅ = ∅"], a: 0, x: "The empty set is a subset of every set. Also A ∩ ∅ = ∅ and A ∪ ∅ = A." },
+
+  // Functions (including binary operations)
+  { t: "Functions", d: "easy", q: "If f(x) = 2x² − 3, find f(−2).", o: ["5", "−11", "11", "−5"], a: 0, x: "f(−2) = 2(4) − 3 = 5." },
+  { t: "Functions", q: "If f(x) = 3x + 2 and g(x) = x − 1, find f(g(x)).", o: ["3x − 1", "3x + 1", "3x² − x − 2", "3x + 3"], a: 0, x: "f(g(x)) = 3(x − 1) + 2 = 3x − 1." },
+  { t: "Functions", q: "If g(x) = 5x − 2, find g⁻¹(13).", o: ["3", "63", "11/5", "13/5"], a: 0, x: "g⁻¹(13) is the value of x for which 5x − 2 = 13, so x = 3." },
+  { t: "Functions", d: "easy", q: "Which value of x must be excluded from the domain of f(x) = 1/(x − 2)?", o: ["0", "2", "−2", "1"], a: 1, x: "At x = 2 the denominator is zero and the function is undefined." },
+  { t: "Functions", q: "Find the range of f(x) = x² for the domain {−2, −1, 0, 1, 2}.", o: ["{0, 1, 4}", "{−4, −1, 0, 1, 4}", "{−2, −1, 0, 1, 2}", "{1, 4}"], a: 0, x: "The images are 4, 1, 0, 1, 4. Listing each value once gives {0, 1, 4}." },
+  { t: "Functions", q: "A straight line passes through (1, 5) and (3, 11). Find its equation.", o: ["y = 3x + 2", "y = 2x + 3", "y = 3x − 2", "y = 6x − 1"], a: 0, x: "Gradient = (11 − 5)/(3 − 1) = 3. Then 5 = 3(1) + c gives c = 2, so y = 3x + 2." },
+  { t: "Functions", d: "easy", q: "If f(x) = 2^x, find f(3) − f(1).", o: ["6", "4", "2", "8"], a: 0, x: "f(3) = 8 and f(1) = 2, so the difference is 6." },
+  { t: "Functions", q: "A binary operation * is defined by a * b = a + b − ab. Find 3 * 4.", o: ["−5", "5", "19", "−1"], a: 0, x: "3 * 4 = 3 + 4 − 12 = −5." },
+  { t: "Functions", q: "A binary operation Δ is defined by a Δ b = a²/b. Find (2 Δ 1) Δ 8.", o: ["2", "1/2", "4", "8"], a: 0, x: "2 Δ 1 = 4/1 = 4. Then 4 Δ 8 = 16/8 = 2." },
+  { t: "Functions", q: "If f(x) = x² − 4x, find the values of x for which f(x) = 5.", o: ["5 or −1", "−5 or 1", "4 or 0", "5 or 1"], a: 0, x: "x² − 4x − 5 = 0 gives (x − 5)(x + 1) = 0, so x = 5 or x = −1." }
+];
