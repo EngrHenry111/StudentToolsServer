@@ -92,8 +92,17 @@ Respond with ONLY a JSON array, no markdown, no extra text:
         messages: [
           { role: "system", content: "Return ONLY valid JSON. Never introduce facts outside the given material." },
           { role: "user", content: prompt }
-        ]
+        ],
+        // Groq's default output cap is 2048 tokens, and this model spends
+        // part of that on hidden reasoning — a 10-20 question quiz then gets
+        // cut off mid-JSON and the whole upload fails. Raise the cap and keep
+        // the reasoning short.
+        max_completion_tokens: 8192,
+        reasoning_effort: "low"
       });
+      if (completion.choices[0].finish_reason === "length") {
+        throw new Error("AI response was cut off before the quiz was complete");
+      }
       return completion.choices[0].message.content;
     } catch (err) {
       if (retries > 0) {
