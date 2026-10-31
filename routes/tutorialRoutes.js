@@ -6,6 +6,7 @@ import {
  searchTutorials,
  getTutorialBySlug,
  getRelatedTutorials,
+ getTutorialDirectory,
  getTrendingTutorials,
  searchSuggestions,
  getCategories,
@@ -39,6 +40,8 @@ router.get("/admin/list", adminAuth, getAdminTutorials);
 router.get("/search", searchTutorials);
 router.get("/suggest",searchSuggestions);
 
+
+router.get("/directory", getTutorialDirectory);   // must be before slug
 
 router.get("/related", getRelatedTutorials);   // must be before slug
 

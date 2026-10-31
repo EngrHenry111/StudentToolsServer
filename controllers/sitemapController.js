@@ -8,7 +8,9 @@ export const generateSitemap = async (req, res) => {
 
   // Only published tutorials belong in the sitemap. Drafts should never be
   // advertised to Google.
-  const tutorials = await Tutorial.find({ status: "published" });
+  const tutorials = await Tutorial.find({ status: "published" })
+   .select("slug updatedAt createdAt")
+   .lean();
 
   // Same rule for the marketplace: only active publishers and published
   // listings are advertised — a suspended publisher or a draft listing
@@ -144,6 +146,7 @@ export const generateSitemap = async (req, res) => {
   const sitemapOutput = await streamToPromise(smStream);
 
   res.header("Content-Type", "application/xml");
+  res.header("Cache-Control", "public, max-age=3600");
   res.send(sitemapOutput.toString());
 
  } catch (error) {

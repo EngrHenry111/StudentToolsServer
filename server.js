@@ -73,7 +73,7 @@ app.use(cors({
 // Public read-only content (tutorials, marketplace listings, publisher
 // storefronts, sitemap) is exempt: Googlebot renders pages by calling these,
 // and a 429 there makes Google see an empty page.
-const PUBLIC_READ = /^\/api\/(tutorials|sitemap|publishers|marketplace\/listings)(\/|$)/;
+const PUBLIC_READ = /^\/api\/(tutorials|sitemap|publishers|marketplace\/(listings|publishers))(\/|$)/;
 
 app.use(rateLimit({
   windowMs: 15 * 60 * 1000,

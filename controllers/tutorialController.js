@@ -452,6 +452,28 @@ export const recordTutorialRedirect = async (slug, toPath, reason = "") => {
 
 // MODIFY THIS FUNCTION
 
+// Every published tutorial, titles and links only. The edge SEO fallback uses
+// this to give crawlers real links on /tutorials and the category pages.
+export const getTutorialDirectory = async (req,res)=>{
+
+ try{
+
+  const tutorials = await Tutorial.find({ status: "published" })
+  .select("title slug category topic -_id")
+  .sort({ category: 1, topic: 1, title: 1 })
+  .lean();
+
+  res.set("Cache-Control", "public, max-age=300");
+  res.json(tutorials.filter((t)=>t.slug));
+
+ }catch(error){
+
+  res.status(500).json({message:error.message});
+
+ }
+
+};
+
 export const getRelatedTutorials = async (req,res)=>{
 
  try{
@@ -461,11 +483,13 @@ export const getRelatedTutorials = async (req,res)=>{
   const tutorials = await Tutorial.find({
    status: "published",
    category: category.toLowerCase(),
-   topic: topic?.toLowerCase(),
+   ...(topic && { topic: topic.toLowerCase() }),
    _id: { $ne: id }
   })
+  .select("title slug excerpt image category topic createdAt")
   .sort({views:-1})
-  .limit(5);
+  .limit(5)
+  .lean();
 
   res.json(tutorials);
 
