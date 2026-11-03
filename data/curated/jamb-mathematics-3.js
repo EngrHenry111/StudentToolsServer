@@ -1,0 +1,128 @@
+// JAMB-style Mathematics, batch 3. Same format as jamb-mathematics.js.
+
+export default [
+  // Algebra
+  { t: "Algebra", d: "easy", q: "Solve 5x − 4 = 3x + 10.", o: ["x = 5", "x = 7", "x = 3", "x = −7"], a: 1, x: "5x − 3x = 10 + 4, so 2x = 14 and x = 7." },
+  { t: "Algebra", q: "Solve 3/(x − 1) = 2/(x + 1).", o: ["x = −5", "x = 5", "x = 1", "x = −1"], a: 0, x: "Cross-multiply: 3(x + 1) = 2(x − 1), so 3x + 3 = 2x − 2 and x = −5." },
+  { t: "Algebra", q: "Factorise 10x² + 11x − 6.", o: ["(5x − 2)(2x + 3)", "(5x + 2)(2x − 3)", "(10x − 3)(x + 2)", "(5x − 3)(2x + 2)"], a: 0, x: "(5x − 2)(2x + 3) = 10x² + 15x − 4x − 6 = 10x² + 11x − 6." },
+  { t: "Algebra", q: "Make r the subject of the formula V = πr²h/3.", o: ["r = 3V/(πh)", "r = √(Vπh/3)", "r = √(3V/(πh))", "r = √(3Vπ/h)"], a: 2, x: "3V = πr²h, so r² = 3V/(πh) and r = √(3V/(πh))." },
+  { t: "Algebra", d: "easy", q: "Solve the simultaneous equations 3x + 2y = 12 and x + 2y = 8.", o: ["x = 2, y = 3", "x = 3, y = 2", "x = 4, y = 0", "x = 2, y = 4"], a: 0, x: "Subtracting the equations gives 2x = 4, so x = 2. Then 2y = 8 − 2 = 6 and y = 3." },
+  { t: "Algebra", q: "Find the remainder when x³ − 2x² + 4 is divided by x − 3.", o: ["13", "7", "−5", "31"], a: 0, x: "By the remainder theorem the remainder is f(3) = 27 − 18 + 4 = 13." },
+  { t: "Algebra", q: "y varies inversely as x, and y = 6 when x = 4. Find y when x = 8.", o: ["12", "3", "2", "48"], a: 1, x: "y = k/x, so k = 6 × 4 = 24. When x = 8, y = 24/8 = 3." },
+  { t: "Algebra", q: "Solve the inequality 3 − 2x > 9.", o: ["x > −3", "x < −3", "x < 3", "x > 3"], a: 1, x: "−2x > 6. Dividing by −2 reverses the sign: x < −3." },
+  { t: "Algebra", d: "hard", q: "If (5x + 1)/((x + 1)(x − 1)) = A/(x + 1) + B/(x − 1), find A and B.", o: ["A = 2, B = 3", "A = 3, B = 2", "A = −2, B = 3", "A = 2, B = −3"], a: 0, x: "5x + 1 = A(x − 1) + B(x + 1). x = −1 gives −4 = −2A, so A = 2. x = 1 gives 6 = 2B, so B = 3." },
+  { t: "Algebra", q: "Find the sum of the first 20 terms of the arithmetic progression 3, 7, 11, …", o: ["820", "800", "840", "410"], a: 0, x: "S = n/2[2a + (n − 1)d] = 10[6 + 19 × 4] = 10 × 82 = 820." },
+  { t: "Algebra", q: "Find the 7th term of the geometric progression 2, 6, 18, …", o: ["486", "1458", "4374", "729"], a: 1, x: "T = ar⁶ = 2 × 3⁶ = 2 × 729 = 1458." },
+
+  // Quadratic Equations
+  { t: "Quadratic Equations", d: "easy", q: "Solve x² − 9x + 20 = 0.", o: ["x = 4 or 5", "x = −4 or −5", "x = 2 or 10", "x = −4 or 5"], a: 0, x: "(x − 4)(x − 5) = 0, so x = 4 or x = 5." },
+  { t: "Quadratic Equations", q: "Find the sum of the roots of 3x² − 12x + 5 = 0.", o: ["−4", "4", "5/3", "12"], a: 1, x: "Sum of roots = −b/a = 12/3 = 4." },
+  { t: "Quadratic Equations", q: "Find the product of the roots of 2x² + 5x − 6 = 0.", o: ["3", "−3", "−5/2", "5/2"], a: 1, x: "Product of roots = c/a = −6/2 = −3." },
+  { t: "Quadratic Equations", q: "Which equation has roots 3 and −4?", o: ["x² − x − 12 = 0", "x² + x − 12 = 0", "x² + 7x − 12 = 0", "x² − 7x + 12 = 0"], a: 1, x: "(x − 3)(x + 4) = x² + x − 12, so the equation is x² + x − 12 = 0." },
+  { t: "Quadratic Equations", q: "Find k if x² − 6x + k = 0 has equal roots.", o: ["9", "6", "36", "−9"], a: 0, x: "Equal roots need b² − 4ac = 0: 36 − 4k = 0, so k = 9." },
+  { t: "Quadratic Equations", q: "The roots of 2x² − 3x + 4 = 0 are", o: ["real and equal", "real and distinct", "not real", "rational and distinct"], a: 2, x: "b² − 4ac = 9 − 32 = −23, which is negative, so there are no real roots." },
+  { t: "Quadratic Equations", q: "Express x² + 8x + 3 in the form (x + p)² + q.", o: ["(x + 4)² − 13", "(x + 4)² + 13", "(x − 4)² − 13", "(x + 8)² − 61"], a: 0, x: "x² + 8x = (x + 4)² − 16, so x² + 8x + 3 = (x + 4)² − 13." },
+  { t: "Quadratic Equations", d: "hard", q: "α and β are the roots of x² − 5x + 3 = 0. Find α² + β².", o: ["19", "25", "31", "22"], a: 0, x: "α + β = 5 and αβ = 3, so α² + β² = (α + β)² − 2αβ = 25 − 6 = 19." },
+  { t: "Quadratic Equations", q: "Find the minimum value of y = x² − 4x + 7.", o: ["7", "3", "2", "−3"], a: 1, x: "y = (x − 2)² + 3. The square is never negative, so the least value is 3, when x = 2." },
+  { t: "Quadratic Equations", d: "easy", q: "Solve x² = 3x.", o: ["x = 3 only", "x = 0 or 3", "x = ±√3", "x = −3 or 0"], a: 1, x: "x² − 3x = 0, so x(x − 3) = 0 and x = 0 or 3. Dividing by x would lose the root x = 0." },
+
+  // Trigonometry
+  { t: "Trigonometry", q: "If cos θ = 5/13 and θ is acute, find tan θ.", o: ["5/12", "12/13", "12/5", "13/12"], a: 2, x: "Adjacent 5, hypotenuse 13, so opposite = √(169 − 25) = 12. tan θ = 12/5." },
+  { t: "Trigonometry", d: "easy", q: "Evaluate 2 cos 60° − tan 45°.", o: ["0", "1", "−1", "1/2"], a: 0, x: "cos 60° = 1/2 and tan 45° = 1, so 2 × 1/2 − 1 = 0." },
+  { t: "Trigonometry", q: "Evaluate sin 60° × cos 30°.", o: ["3/4", "√3/2", "1/2", "3/2"], a: 0, x: "Both equal √3/2, so the product is 3/4." },
+  { t: "Trigonometry", q: "Convert 150° to radians.", o: ["5π/6", "2π/3", "3π/4", "5π/3"], a: 0, x: "Multiply degrees by π/180: 150 × π/180 = 5π/6." },
+  { t: "Trigonometry", d: "easy", q: "From a point 40 m from the foot of a tree, the angle of elevation of the top is 45°. Find the height of the tree.", o: ["40 m", "20 m", "40√2 m", "80 m"], a: 0, x: "height = 40 tan 45° = 40 × 1 = 40 m." },
+  { t: "Trigonometry", q: "In triangle ABC, a = 10 cm, A = 30° and B = 90°. Find b.", o: ["20 cm", "5 cm", "10√3 cm", "15 cm"], a: 0, x: "Sine rule: b = a sin B / sin A = 10 × 1 / 0.5 = 20 cm." },
+  { t: "Trigonometry", q: "Two sides of a triangle are 5 cm and 7 cm and the angle between them is 60°. Find the third side.", o: ["√39 cm", "√109 cm", "√74 cm", "6 cm"], a: 0, x: "Cosine rule: c² = 25 + 49 − 2 × 5 × 7 × cos 60° = 74 − 35 = 39, so c = √39 cm." },
+  { t: "Trigonometry", q: "Solve sin x = −1/2 for 0° ≤ x ≤ 360°.", o: ["30°, 150°", "210°, 330°", "150°, 210°", "210°, 300°"], a: 1, x: "sin is negative in the third and fourth quadrants. The reference angle is 30°, so x = 180° + 30° = 210° or 360° − 30° = 330°." },
+  { t: "Trigonometry", q: "Simplify (1 − cos²θ)/sin θ.", o: ["cos θ", "sin θ", "tan θ", "1"], a: 1, x: "1 − cos²θ = sin²θ, and sin²θ / sin θ = sin θ." },
+  { t: "Trigonometry", q: "Find the area of a triangle with sides 8 cm and 6 cm and included angle 30°.", o: ["24 cm²", "12 cm²", "48 cm²", "12√3 cm²"], a: 1, x: "Area = ½ab sin C = ½ × 8 × 6 × 0.5 = 12 cm²." },
+  { t: "Trigonometry", q: "Find the period of y = sin 3x.", o: ["360°", "120°", "1080°", "60°"], a: 1, x: "sin x repeats every 360°, so sin 3x repeats every 360°/3 = 120°." },
+
+  // Calculus
+  { t: "Calculus", d: "easy", q: "Differentiate y = 4x³ − 2x + 7 with respect to x.", o: ["12x² − 2", "12x² − 2x", "4x² − 2", "12x² + 7"], a: 0, x: "d/dx(4x³) = 12x², d/dx(−2x) = −2 and the constant 7 gives 0." },
+  { t: "Calculus", q: "Find the gradient of the curve y = x² − 3x at x = 2.", o: ["1", "−1", "−2", "4"], a: 0, x: "dy/dx = 2x − 3 = 4 − 3 = 1 at x = 2." },
+  { t: "Calculus", q: "Find ∫(6x² + 4x) dx.", o: ["2x³ + 2x² + C", "12x + 4 + C", "3x³ + 2x² + C", "2x³ + 4x² + C"], a: 0, x: "∫6x² dx = 2x³ and ∫4x dx = 2x², plus the constant C." },
+  { t: "Calculus", q: "Evaluate the integral of (4x − 1) from x = 1 to x = 2.", o: ["5", "6", "7", "4"], a: 0, x: "[2x² − x] from 1 to 2 = (8 − 2) − (2 − 1) = 6 − 1 = 5." },
+  { t: "Calculus", q: "Differentiate y = sin 2x.", o: ["cos 2x", "−2cos 2x", "2cos 2x", "2sin x cos x"], a: 2, x: "Chain rule: d/dx sin(2x) = cos(2x) × 2 = 2cos 2x." },
+  { t: "Calculus", q: "Differentiate y = (x² + 1)³.", o: ["3(x² + 1)²", "6x(x² + 1)²", "2x(x² + 1)³", "6x(x² + 1)³"], a: 1, x: "Chain rule: 3(x² + 1)² × 2x = 6x(x² + 1)²." },
+  { t: "Calculus", q: "Find the stationary point of y = x² − 6x + 5.", o: ["(3, −4)", "(−3, 32)", "(3, 4)", "(6, 5)"], a: 0, x: "dy/dx = 2x − 6 = 0 gives x = 3. Then y = 9 − 18 + 5 = −4." },
+  { t: "Calculus", q: "A particle moves so that its displacement is s = t³ − 2t² metres after t seconds. Find its velocity at t = 3 s.", o: ["15 m/s", "9 m/s", "27 m/s", "21 m/s"], a: 0, x: "v = ds/dt = 3t² − 4t = 27 − 12 = 15 m/s." },
+  { t: "Calculus", q: "Find the area under the line y = 2x + 1 between x = 1 and x = 3.", o: ["10", "12", "8", "14"], a: 0, x: "[x² + x] from 1 to 3 = (9 + 3) − (1 + 1) = 10 square units." },
+  { t: "Calculus", q: "Differentiate y = x sin x.", o: ["cos x", "sin x + x cos x", "x cos x", "sin x − x cos x"], a: 1, x: "Product rule: (1)(sin x) + x(cos x) = sin x + x cos x." },
+  { t: "Calculus", d: "hard", q: "Find the maximum value of y = 12x − 3x².", o: ["12", "2", "24", "6"], a: 0, x: "dy/dx = 12 − 6x = 0 gives x = 2. Then y = 24 − 12 = 12. d²y/dx² = −6 < 0, so this is a maximum." },
+
+  // Probability
+  { t: "Probability", d: "easy", q: "Three fair coins are tossed. Find the probability of getting at least one tail.", o: ["7/8", "1/8", "3/8", "1/2"], a: 0, x: "The only outcome with no tail is HHH, with probability 1/8. So P(at least one tail) = 1 − 1/8 = 7/8." },
+  { t: "Probability", d: "easy", q: "A bag holds 5 red, 3 blue and 2 green balls. One ball is picked at random. Find the probability that it is blue.", o: ["3/10", "1/3", "3/7", "1/5"], a: 0, x: "There are 10 balls and 3 are blue, so P = 3/10." },
+  { t: "Probability", q: "Two fair dice are thrown. Find the probability that the total score is greater than 9.", o: ["1/6", "1/12", "5/36", "1/4"], a: 0, x: "A total of 10 has 3 outcomes, 11 has 2 and 12 has 1: 6 of 36 outcomes, so P = 1/6." },
+  { t: "Probability", q: "Two fair dice are thrown. Find the probability that the product of the scores is 12.", o: ["1/9", "1/12", "1/6", "1/18"], a: 0, x: "(2,6), (6,2), (3,4), (4,3) give 4 of 36 outcomes, so P = 4/36 = 1/9." },
+  { t: "Probability", q: "A and B are independent events with P(A) = 0.3 and P(B) = 0.5. Find P(A and B).", o: ["0.8", "0.15", "0.2", "0.35"], a: 1, x: "For independent events P(A and B) = P(A) × P(B) = 0.3 × 0.5 = 0.15." },
+  { t: "Probability", q: "A and B are mutually exclusive events with P(A) = 0.3 and P(B) = 0.45. Find P(A or B).", o: ["0.75", "0.135", "0.25", "0.15"], a: 0, x: "Mutually exclusive events cannot happen together, so P(A or B) = 0.3 + 0.45 = 0.75." },
+  { t: "Probability", d: "hard", q: "A box has 3 black and 7 white balls. Two are drawn without replacement. Find the probability that one of each colour is drawn.", o: ["7/15", "21/100", "7/30", "21/50"], a: 0, x: "Black then white: 3/10 × 7/9 = 21/90. White then black: 7/10 × 3/9 = 21/90. Total = 42/90 = 7/15." },
+  { t: "Probability", d: "easy", q: "In how many ways can the letters of the word WORD be arranged?", o: ["24", "12", "16", "4"], a: 0, x: "Four different letters can be arranged in 4! = 24 ways." },
+  { t: "Probability", q: "In how many ways can a committee of 3 be chosen from 8 people?", o: ["56", "336", "24", "112"], a: 0, x: "Order does not matter: ⁸C₃ = 8 × 7 × 6 / (3 × 2 × 1) = 56." },
+  { t: "Probability", q: "In how many ways can the letters of the word ALLOW be arranged?", o: ["120", "60", "30", "20"], a: 1, x: "5 letters with L repeated twice: 5!/2! = 120/2 = 60." },
+
+  // Statistics
+  { t: "Statistics", d: "easy", q: "Find the mean of 3, 5, 7, 9, 11, 13.", o: ["8", "7", "9", "48"], a: 0, x: "Sum = 48 and there are 6 numbers, so the mean is 48/6 = 8." },
+  { t: "Statistics", q: "Find the median of 12, 7, 15, 9, 20, 4.", o: ["10.5", "12", "9", "11"], a: 0, x: "In order: 4, 7, 9, 12, 15, 20. The middle two are 9 and 12, so the median is 10.5." },
+  { t: "Statistics", d: "easy", q: "Find the mode of 2, 3, 3, 5, 7, 7, 7, 8.", o: ["3", "7", "5", "8"], a: 1, x: "7 appears three times, more than any other number." },
+  { t: "Statistics", d: "easy", q: "Find the range of 14, 3, 27, 9, 18.", o: ["24", "27", "15", "11"], a: 0, x: "Range = highest − lowest = 27 − 3 = 24." },
+  { t: "Statistics", d: "hard", q: "Find the variance of 3, 5, 7, 9, 11.", o: ["8", "40", "10", "2√2"], a: 0, x: "Mean = 7. Squared deviations: 16, 4, 0, 4, 16, total 40. Variance = 40/5 = 8." },
+  { t: "Statistics", q: "The scores 1, 2 and 3 have frequencies 2, 5 and 3. Find the mean score.", o: ["2.1", "2", "2.5", "1.9"], a: 0, x: "Σfx = 2 + 10 + 9 = 21 and Σf = 10, so the mean is 21/10 = 2.1." },
+  { t: "Statistics", q: "In a pie chart of 120 students, 30 students prefer chemistry. Find the angle of the chemistry sector.", o: ["90°", "30°", "120°", "60°"], a: 0, x: "30/120 × 360° = 90°." },
+  { t: "Statistics", q: "The mean of five numbers is 12. Four of them are 10, 14, 8 and 15. Find the fifth.", o: ["13", "12", "11", "15"], a: 0, x: "Total = 5 × 12 = 60. The four add to 47, so the fifth is 60 − 47 = 13." },
+  { t: "Statistics", d: "easy", q: "Find the standard deviation of 5, 5, 5, 5.", o: ["5", "1", "0", "25"], a: 2, x: "Every value equals the mean, so there is no spread and the standard deviation is 0." },
+  { t: "Statistics", d: "easy", q: "In a grouped frequency table, the class with the highest frequency is called the", o: ["median class", "modal class", "class interval", "class boundary"], a: 1, x: "The mode is the most frequent value, so the class with the highest frequency is the modal class." },
+
+  // Geometry
+  { t: "Geometry", q: "Find each interior angle of a regular decagon.", o: ["144°", "150°", "135°", "160°"], a: 0, x: "Each exterior angle is 360°/10 = 36°, so each interior angle is 180° − 36° = 144°." },
+  { t: "Geometry", q: "The interior angles of a polygon add up to 1440°. How many sides has it?", o: ["8", "10", "12", "9"], a: 1, x: "(n − 2) × 180 = 1440, so n − 2 = 8 and n = 10." },
+  { t: "Geometry", q: "Find the distance between the points (1, 2) and (7, 10).", o: ["10", "14", "√28", "8"], a: 0, x: "√((7 − 1)² + (10 − 2)²) = √(36 + 64) = √100 = 10." },
+  { t: "Geometry", d: "easy", q: "Find the midpoint of the line joining (−2, 5) and (6, −1).", o: ["(2, 2)", "(4, 4)", "(4, −3)", "(2, 3)"], a: 0, x: "((−2 + 6)/2, (5 − 1)/2) = (2, 2)." },
+  { t: "Geometry", q: "Find the gradient of the line 3y − 6x = 9.", o: ["2", "−2", "3", "6"], a: 0, x: "3y = 6x + 9, so y = 2x + 3 and the gradient is 2." },
+  { t: "Geometry", q: "Find the area of a circle of radius 14 cm. (Take π = 22/7.)", o: ["616 cm²", "88 cm²", "154 cm²", "1232 cm²"], a: 0, x: "πr² = 22/7 × 196 = 616 cm²." },
+  { t: "Geometry", q: "Find the perimeter of a quadrant (quarter circle) of radius 7 cm. (Take π = 22/7.)", o: ["25 cm", "11 cm", "18 cm", "38.5 cm"], a: 0, x: "Arc = ¼ × 2 × 22/7 × 7 = 11 cm. Add the two radii: 11 + 7 + 7 = 25 cm." },
+  { t: "Geometry", q: "Find the volume of a cylinder of radius 7 cm and height 10 cm. (Take π = 22/7.)", o: ["1540 cm³", "440 cm³", "770 cm³", "3080 cm³"], a: 0, x: "πr²h = 22/7 × 49 × 10 = 1540 cm³." },
+  { t: "Geometry", d: "easy", q: "The angle in a semicircle is", o: ["45°", "90°", "180°", "60°"], a: 1, x: "An angle drawn from the ends of a diameter to any point on the circle is always a right angle." },
+  { t: "Geometry", q: "Each exterior angle of a regular polygon is 40°. How many sides has it?", o: ["9", "8", "10", "12"], a: 0, x: "Exterior angles add up to 360°, so n = 360/40 = 9." },
+  { t: "Geometry", q: "Find the equation of the line through (2, 3) with gradient −1.", o: ["y = −x + 5", "y = x + 1", "y = −x + 1", "y = −x − 5"], a: 0, x: "y − 3 = −1(x − 2), so y = −x + 5." },
+
+  // Indices and Logarithms
+  { t: "Indices and Logarithms", q: "Evaluate 27^(2/3).", o: ["9", "18", "3", "6"], a: 0, x: "The cube root of 27 is 3, and 3² = 9." },
+  { t: "Indices and Logarithms", q: "Evaluate (1/16)^(−1/4).", o: ["2", "−2", "1/2", "4"], a: 0, x: "The negative index flips the fraction: 16^(1/4) = 2." },
+  { t: "Indices and Logarithms", d: "easy", q: "Solve 2^(x + 1) = 32.", o: ["x = 4", "x = 5", "x = 3", "x = 16"], a: 0, x: "32 = 2⁵, so x + 1 = 5 and x = 4." },
+  { t: "Indices and Logarithms", q: "Solve 8^x = 1/4.", o: ["x = −2/3", "x = 2/3", "x = −3/2", "x = −1/2"], a: 0, x: "Write both as powers of 2: 2^(3x) = 2^(−2), so 3x = −2 and x = −2/3." },
+  { t: "Indices and Logarithms", q: "Evaluate log₁₀ 0.001.", o: ["−3", "3", "−2", "0.3"], a: 0, x: "0.001 = 10⁻³, so log₁₀ 0.001 = −3." },
+  { t: "Indices and Logarithms", q: "Simplify log 8 ÷ log 4.", o: ["2", "3/2", "log 2", "1/2"], a: 1, x: "log 8 = 3 log 2 and log 4 = 2 log 2, so the ratio is 3/2." },
+  { t: "Indices and Logarithms", d: "easy", q: "Evaluate log₃ 81.", o: ["3", "4", "27", "9"], a: 1, x: "3⁴ = 81, so log₃ 81 = 4." },
+  { t: "Indices and Logarithms", q: "Given log 2 = 0.3010, find log 50.", o: ["1.6990", "1.3010", "0.6990", "2.3010"], a: 0, x: "50 = 100 ÷ 2, so log 50 = log 100 − log 2 = 2 − 0.3010 = 1.6990." },
+  { t: "Indices and Logarithms", q: "Simplify a³ × a⁻⁵ ÷ a⁻⁴.", o: ["a²", "a⁻⁶", "a¹²", "a⁻²"], a: 0, x: "Add and subtract the powers: 3 + (−5) − (−4) = 2, giving a²." },
+  { t: "Indices and Logarithms", q: "Solve log₂(x − 1) = 3.", o: ["x = 9", "x = 7", "x = 8", "x = 5"], a: 0, x: "x − 1 = 2³ = 8, so x = 9." },
+  { t: "Indices and Logarithms", q: "Simplify √12 × √27.", o: ["18", "6√3", "9", "36"], a: 0, x: "√12 × √27 = √324 = 18. Or 2√3 × 3√3 = 6 × 3 = 18." },
+
+  // Sets
+  { t: "Sets", d: "easy", q: "A = {1, 2, 3, 4, 5} and B = {2, 4, 6}. Find n(A ∪ B).", o: ["6", "8", "2", "5"], a: 0, x: "A ∪ B = {1, 2, 3, 4, 5, 6}, which has 6 elements." },
+  { t: "Sets", q: "How many subsets has a set with 4 elements?", o: ["8", "16", "4", "12"], a: 1, x: "A set with n elements has 2ⁿ subsets: 2⁴ = 16." },
+  { t: "Sets", q: "In a class of 40 students, 25 play football, 20 play tennis and 8 play neither. How many play both?", o: ["13", "5", "12", "8"], a: 0, x: "32 students play at least one game. 25 + 20 − both = 32, so both = 13." },
+  { t: "Sets", q: "U = {1, 2, 3, …, 12} and A is the set of multiples of 3 in U. Find n(A′).", o: ["8", "4", "9", "6"], a: 0, x: "A = {3, 6, 9, 12} has 4 elements, so A′ has 12 − 4 = 8." },
+  { t: "Sets", q: "n(A) = 12, n(B) = 9 and n(A ∩ B) = 4. Find n(A ∪ B).", o: ["17", "21", "25", "13"], a: 0, x: "n(A ∪ B) = n(A) + n(B) − n(A ∩ B) = 12 + 9 − 4 = 17." },
+  { t: "Sets", q: "If A ⊂ B, then A ∪ B equals", o: ["A", "B", "∅", "A ∩ B"], a: 1, x: "Every element of A is already in B, so joining them adds nothing new: A ∪ B = B." },
+  { t: "Sets", d: "easy", q: "For any set A, A ∩ A′ is", o: ["A", "the universal set", "the empty set", "A′"], a: 2, x: "No element can be in A and outside A at the same time." },
+  { t: "Sets", q: "How many proper subsets has {a, b, c}?", o: ["8", "7", "6", "3"], a: 1, x: "There are 2³ = 8 subsets. A proper subset excludes the set itself, leaving 7." },
+  { t: "Sets", q: "List Q = {x : x is a prime number and 10 < x < 20}.", o: ["{11, 13, 17, 19}", "{11, 13, 15, 17, 19}", "{13, 17, 19}", "{11, 13, 17}"], a: 0, x: "The primes between 10 and 20 are 11, 13, 17 and 19. 15 is not prime (3 × 5)." },
+  { t: "Sets", q: "In a survey of 50 people, 30 like tea, 25 like coffee and 5 like neither. How many like both?", o: ["10", "5", "15", "20"], a: 0, x: "45 like at least one. 30 + 25 − x = 45, so x = 10." },
+
+  // Functions
+  { t: "Functions", d: "easy", q: "If f(x) = 3x − 2, find f(4).", o: ["10", "14", "12", "2"], a: 0, x: "f(4) = 3 × 4 − 2 = 10." },
+  { t: "Functions", q: "f(x) = 2x + 1 and g(x) = x². Find f(g(3)).", o: ["19", "49", "13", "7"], a: 0, x: "g(3) = 9, then f(9) = 2 × 9 + 1 = 19." },
+  { t: "Functions", q: "Find the inverse of f(x) = (x + 5)/2.", o: ["f⁻¹(x) = 2x − 5", "f⁻¹(x) = 2x + 5", "f⁻¹(x) = (x − 5)/2", "f⁻¹(x) = x/2 − 5"], a: 0, x: "Let y = (x + 5)/2, so x = 2y − 5. Swapping gives f⁻¹(x) = 2x − 5." },
+  { t: "Functions", q: "For what value of x is f(x) = 1/(x − 3) undefined?", o: ["x = 3", "x = −3", "x = 0", "x = 1"], a: 0, x: "Division by zero is undefined, and x − 3 = 0 when x = 3." },
+  { t: "Functions", d: "easy", q: "If f(x) = x² − 1, find f(−2).", o: ["3", "−5", "5", "−3"], a: 0, x: "(−2)² − 1 = 4 − 1 = 3." },
+  { t: "Functions", q: "g(x) = 4x − 3. Find x if g(x) = 9.", o: ["x = 3", "x = 33", "x = 1.5", "x = 6"], a: 0, x: "4x − 3 = 9, so 4x = 12 and x = 3." },
+  { t: "Functions", q: "f(x) = x + 2 and g(x) = 3x. Find g(f(x)).", o: ["3x + 6", "3x + 2", "3x² + 6", "x + 6"], a: 0, x: "g(f(x)) = 3(x + 2) = 3x + 6." },
+  { t: "Functions", q: "g(x) = 2x − 1 has domain {0, 1, 2, 3}. Find its range.", o: ["{−1, 1, 3, 5}", "{0, 1, 2, 3}", "{1, 3, 5, 7}", "{−1, 0, 1, 2}"], a: 0, x: "g(0) = −1, g(1) = 1, g(2) = 3, g(3) = 5, so the range is {−1, 1, 3, 5}." },
+  { t: "Functions", q: "Which of these relations is a function?", o: ["{(1, 2), (1, 3), (2, 4)}", "{(1, 2), (2, 3), (3, 4)}", "{(2, 1), (2, 2), (3, 3)}", "{(1, 1), (1, 2), (1, 3)}"], a: 1, x: "In a function each input has exactly one output. Only the second set has no repeated first element." },
+  { t: "Functions", q: "If h(x) = 3^x, find h(2) + h(0).", o: ["10", "9", "6", "11"], a: 0, x: "h(2) = 9 and h(0) = 3⁰ = 1, so the sum is 10." }
+];
