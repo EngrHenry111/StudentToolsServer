@@ -28,7 +28,7 @@ export const generateSitemap = async (req, res) => {
 
   // Static pages (FIXED URLs)
   const staticPages = [
-   { url: "/", changefreq: "daily", priority: 1.0 },
+   { url: "/", changefreq: "daily", priority: 1.0, lastmod: "2026-11-04" },
 
    { url: "/tutorials", changefreq: "daily", priority: 0.9 },
 
@@ -52,14 +52,20 @@ export const generateSitemap = async (req, res) => {
    { url: "/engineering-tools/battery-backup-calculator", changefreq: "monthly", priority: 0.8, lastmod: "2026-10-27" },
    { url: "/cgpa-converter", changefreq: "monthly", priority: 0.8, lastmod: "2026-10-27" },
    { url: "/aggregate-score-calculator", changefreq: "monthly", priority: 0.9, lastmod: "2026-10-27" },
-   { url: "/jamb-cbt-practice", changefreq: "monthly", priority: 0.9, lastmod: "2026-10-27" },
+   { url: "/jamb-cbt-practice", changefreq: "monthly", priority: 0.9, lastmod: "2026-11-04" },
   // Slugs mirror SUBJECTS in the client's src/utils/cbt/index.js.
   ...["mathematics", "physics", "chemistry", "biology"].map((slug) => ({
-    url: `/jamb-cbt-practice/${slug}`, changefreq: "monthly", priority: 0.8, lastmod: "2026-10-27"
+    url: `/jamb-cbt-practice/${slug}`, changefreq: "monthly", priority: 0.8, lastmod: "2026-11-04"
   })),
   // Slugs mirror UNIVERSITIES in the client's src/utils/aggregate.js.
    ...["unilag", "ui", "oau", "unn", "uniben", "uniport", "unilorin", "lasu", "abu", "unical"].map((slug) => ({
      url: `/aggregate-score-calculator/${slug}`, changefreq: "monthly", priority: 0.8, lastmod: "2026-10-27"
+   })),
+   { url: "/project-topics", changefreq: "monthly", priority: 0.9, lastmod: "2026-11-04" },
+  // Slugs mirror DEPARTMENTS in the client's src/pages/projectTopics/departments.js.
+   ...["accounting", "nursing", "computer-science", "economics", "business-administration", "banking-and-finance",
+     "education", "mass-communication", "political-science", "public-health"].map((slug) => ({
+     url: `/project-topics/${slug}`, changefreq: "monthly", priority: 0.8, lastmod: "2026-11-04"
    })),
 
    { url: "/study-planner", changefreq: "weekly", priority: 0.7 },
