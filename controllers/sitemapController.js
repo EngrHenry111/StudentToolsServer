@@ -62,6 +62,11 @@ export const generateSitemap = async (req, res) => {
      url: `/aggregate-score-calculator/${slug}`, changefreq: "monthly", priority: 0.8, lastmod: "2026-10-27"
    })),
    { url: "/project-topics", changefreq: "monthly", priority: 0.9, lastmod: "2026-11-04" },
+   { url: "/calculators", changefreq: "monthly", priority: 0.8, lastmod: "2026-11-04" },
+   { url: "/percentage-calculator", changefreq: "monthly", priority: 0.9, lastmod: "2026-11-04" },
+   { url: "/bmi-calculator", changefreq: "monthly", priority: 0.9, lastmod: "2026-11-04" },
+   { url: "/ovulation-calculator", changefreq: "monthly", priority: 0.9, lastmod: "2026-11-04" },
+   { url: "/pregnancy-due-date-calculator", changefreq: "monthly", priority: 0.9, lastmod: "2026-11-04" },
   // Slugs mirror DEPARTMENTS in the client's src/pages/projectTopics/departments.js.
    ...["accounting", "nursing", "computer-science", "economics", "business-administration", "banking-and-finance",
      "education", "mass-communication", "political-science", "public-health"].map((slug) => ({
