@@ -63,6 +63,7 @@ export const generateSitemap = async (req, res) => {
    })),
    { url: "/project-topics", changefreq: "monthly", priority: 0.9, lastmod: "2026-11-04" },
    { url: "/calculators", changefreq: "monthly", priority: 0.8, lastmod: "2026-11-04" },
+   { url: "/publish-and-earn", changefreq: "monthly", priority: 0.6, lastmod: "2026-11-10" },
    { url: "/percentage-calculator", changefreq: "monthly", priority: 0.9, lastmod: "2026-11-04" },
    { url: "/bmi-calculator", changefreq: "monthly", priority: 0.9, lastmod: "2026-11-04" },
    { url: "/ovulation-calculator", changefreq: "monthly", priority: 0.9, lastmod: "2026-11-04" },
