@@ -3,6 +3,9 @@
 //
 // Dry run:  node scripts/schedulePublishing.js
 // Apply:    node scripts/schedulePublishing.js --apply [--per-day 5] [--start 2026-10-05]
+//           [--categories chemistry,biology] [--since 2026-11-10]
+//           (--since only takes drafts created on or after that date, so a new
+//           batch can be scheduled without picking up older drafts)
 //           (--per-day up to 24; above 6 the times are spread 07:00–22:00 WAT)
 //
 // Drafts are taken oldest first and interleaved across the categories below,
@@ -13,7 +16,7 @@ import Tutorial from "../models/tutorialModel.js";
 
 dotenv.config();
 
-const CATEGORIES = ["physics", "mathematics", "programming"];
+const DEFAULT_CATEGORIES = ["physics", "mathematics", "programming"];
 // Go-live times in WAT (UTC+1): 08:00, 10:30, 13:00, 15:30, 18:00, …
 const SLOT_MINUTES_WAT = [480, 630, 780, 930, 1080, 1230];
 
@@ -25,6 +28,9 @@ const arg = (name, fallback) => {
 const APPLY = process.argv.includes("--apply");
 const perDay = Number(arg("--per-day", 5));
 const start = arg("--start", new Date().toISOString().slice(0, 10));
+const CATEGORIES = arg("--categories", DEFAULT_CATEGORIES.join(",")).split(",").map((c) => c.trim()).filter(Boolean);
+const since = arg("--since", null);
+if (since && Number.isNaN(Date.parse(since))) throw new Error("--since must be a date like 2026-11-10");
 
 const MAX_PER_DAY = 24;
 if (!(perDay >= 1 && perDay <= MAX_PER_DAY)) {
@@ -53,7 +59,8 @@ for (const category of CATEGORIES) {
   queues.push(await Tutorial.find({
     status: "draft",
     category,
-    publishAt: { $exists: false }
+    publishAt: { $exists: false },
+    ...(since ? { createdAt: { $gte: new Date(`${since}T00:00:00Z`) } } : {})
   }).sort({ createdAt: 1 }).select("title category"));
 }
 
