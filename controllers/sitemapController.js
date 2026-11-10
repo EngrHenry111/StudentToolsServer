@@ -82,10 +82,10 @@ export const generateSitemap = async (req, res) => {
    { url: "/quiz", changefreq: "weekly", priority: 0.7 },
    { url: "/marketplace", changefreq: "daily", priority: 0.8 },
 
-   { url: "/about", changefreq: "yearly", priority: 0.5 },
+   { url: "/about", changefreq: "yearly", priority: 0.5, lastmod: "2026-11-10" },
    { url: "/contact", changefreq: "yearly", priority: 0.5 },
-   { url: "/privacy-policy", changefreq: "yearly", priority: 0.3 },
-   { url: "/terms", changefreq: "yearly", priority: 0.3 },
+   { url: "/privacy-policy", changefreq: "yearly", priority: 0.3, lastmod: "2026-11-10" },
+   { url: "/terms", changefreq: "yearly", priority: 0.3, lastmod: "2026-11-10" },
    { url: "/author", changefreq: "yearly", priority: 0.5 }
   ];
 
