@@ -119,7 +119,8 @@ export const generateSitemap = async (req, res) => {
    ...["accounting", "nursing", "computer-science", "economics", "business-administration", "banking-and-finance",
      "education", "mass-communication", "political-science", "public-health",
      "public-administration", "sociology", "marketing", "english-language", "microbiology", "biochemistry",
-     "agricultural-economics", "guidance-and-counselling", "entrepreneurship", "health-education"].map((slug) => ({
+     "agricultural-economics", "guidance-and-counselling", "entrepreneurship", "health-education",
+    "law", "civil-engineering", "electrical-engineering", "geography"].map((slug) => ({
      url: `/project-topics/${slug}`, changefreq: "monthly", priority: 0.8, lastmod: "2026-11-12"
    })),
 
