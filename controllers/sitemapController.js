@@ -61,7 +61,7 @@ export const generateSitemap = async (req, res) => {
    ...["unilag", "ui", "oau", "unn", "uniben", "uniport", "unilorin", "lasu", "abu", "unical"].map((slug) => ({
      url: `/aggregate-score-calculator/${slug}`, changefreq: "monthly", priority: 0.8, lastmod: "2026-10-27"
    })),
-   { url: "/project-topics", changefreq: "monthly", priority: 0.9, lastmod: "2026-11-04" },
+   { url: "/project-topics", changefreq: "monthly", priority: 0.9, lastmod: "2026-11-12" },
    { url: "/calculators", changefreq: "monthly", priority: 0.8, lastmod: "2026-11-04" },
    { url: "/jamb-subject-combination", changefreq: "monthly", priority: 0.9, lastmod: "2026-11-11" },
   // Slugs mirror COURSES in the client's src/pages/jambSubjects/courseInfo.js.
@@ -117,8 +117,10 @@ export const generateSitemap = async (req, res) => {
    { url: "/pregnancy-due-date-calculator", changefreq: "monthly", priority: 0.9, lastmod: "2026-11-04" },
   // Slugs mirror DEPARTMENTS in the client's src/pages/projectTopics/departments.js.
    ...["accounting", "nursing", "computer-science", "economics", "business-administration", "banking-and-finance",
-     "education", "mass-communication", "political-science", "public-health"].map((slug) => ({
-     url: `/project-topics/${slug}`, changefreq: "monthly", priority: 0.8, lastmod: "2026-11-04"
+     "education", "mass-communication", "political-science", "public-health",
+     "public-administration", "sociology", "marketing", "english-language", "microbiology", "biochemistry",
+     "agricultural-economics", "guidance-and-counselling", "entrepreneurship", "health-education"].map((slug) => ({
+     url: `/project-topics/${slug}`, changefreq: "monthly", priority: 0.8, lastmod: "2026-11-12"
    })),
 
    { url: "/study-planner", changefreq: "weekly", priority: 0.7 },
