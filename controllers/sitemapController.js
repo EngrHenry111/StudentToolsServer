@@ -76,6 +76,9 @@ export const generateSitemap = async (req, res) => {
   // Writing guides: mirrors GUIDE_PATHS in the client's src/pages/writing/paths.js.
    { url: "/writing-guides", changefreq: "monthly", priority: 0.9, lastmod: "2026-11-11" },
    { url: "/letter-generator", changefreq: "monthly", priority: 0.8, lastmod: "2026-11-11" },
+   { url: "/cv-builder", changefreq: "monthly", priority: 0.9, lastmod: "2026-11-11" },
+   { url: "/cv-format-nigeria", changefreq: "monthly", priority: 0.8, lastmod: "2026-11-11" },
+   { url: "/how-to-write-a-cv-with-no-experience", changefreq: "monthly", priority: 0.8, lastmod: "2026-11-11" },
    { url: "/how-to-write-an-application-letter", changefreq: "monthly", priority: 0.8, lastmod: "2026-11-11" },
    { url: "/cover-letter-for-job-application", changefreq: "monthly", priority: 0.8, lastmod: "2026-11-11" },
    { url: "/application-letter-for-teaching-job", changefreq: "monthly", priority: 0.8, lastmod: "2026-11-11" },
