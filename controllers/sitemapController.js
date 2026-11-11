@@ -63,6 +63,11 @@ export const generateSitemap = async (req, res) => {
    })),
    { url: "/project-topics", changefreq: "monthly", priority: 0.9, lastmod: "2026-11-04" },
    { url: "/calculators", changefreq: "monthly", priority: 0.8, lastmod: "2026-11-04" },
+   { url: "/jamb-subject-combination", changefreq: "monthly", priority: 0.9, lastmod: "2026-11-11" },
+  // Slugs mirror COURSES in the client's src/pages/jambSubjects/courseInfo.js.
+   ...["computer-science","cyber-security","software-engineering","information-technology","accounting","business-administration","banking-and-finance","economics","marketing","public-administration","mass-communication","political-science","sociology","psychology","law","english","history-and-international-studies","medicine-and-surgery","nursing","pharmacy","medical-laboratory-science","anatomy","physiology","radiography","physiotherapy","dentistry","civil-engineering","mechanical-engineering","electrical-electronics-engineering","chemical-engineering","petroleum-engineering","computer-engineering","architecture","estate-management","quantity-surveying","biochemistry","microbiology","industrial-chemistry","chemistry","physics","mathematics","statistics","geology","agriculture","guidance-and-counselling"].map((slug) => ({
+     url: `/jamb-subject-combination/${slug}`, changefreq: "monthly", priority: 0.8, lastmod: "2026-11-11"
+   })),
    { url: "/publish-and-earn", changefreq: "monthly", priority: 0.6, lastmod: "2026-11-10" },
    { url: "/percentage-calculator", changefreq: "monthly", priority: 0.9, lastmod: "2026-11-04" },
    { url: "/bmi-calculator", changefreq: "monthly", priority: 0.9, lastmod: "2026-11-04" },
