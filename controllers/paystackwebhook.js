@@ -2,6 +2,8 @@ import crypto from "crypto";
 import User from "../models/User.js";
 import MarketplaceOrder from "../models/MarketplaceOrder.js";
 import { confirmOrderWithPaystack } from "../services/marketplaceOrderService.js";
+import CourseOrder from "../models/CourseOrder.js";
+import { confirmCourseOrder } from "../services/courseAccessService.js";
 
 export const paystackWebhook = async (
   req,
@@ -37,6 +39,15 @@ export const paystackWebhook = async (
     if (event.event === "charge.success" && event.data?.metadata?.type === "marketplace") {
       const order = await MarketplaceOrder.findOne({ paystackReference: event.data.reference });
       if (order) await confirmOrderWithPaystack(order);
+      return res.sendStatus(200);
+    }
+
+    // Video-course purchases (Youth Tech Hub etc.) share this Paystack
+    // account. Re-verified with Paystack's API + amount-checked inside
+    // confirmCourseOrder — the event body alone is never trusted.
+    if (event.event === "charge.success" && event.data?.metadata?.type === "course") {
+      const order = await CourseOrder.findOne({ paystackReference: event.data.reference });
+      if (order) await confirmCourseOrder(order);
       return res.sendStatus(200);
     }
 
