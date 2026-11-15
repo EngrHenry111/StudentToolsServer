@@ -13,8 +13,16 @@ const PAYSTACK_URL = "https://api.paystack.co";
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const CLIENT_URL = process.env.CLIENT_URL || "https://studenttoolsng.com";
 
+// Prefer the marketplace key: it's the one proven to work live for
+// one-time purchases (no subaccount passed here, so the full amount
+// settles to the main account). PAYSTACK_COURSE_SECRET_KEY overrides both.
+export const courseSecretKey = () =>
+  process.env.PAYSTACK_COURSE_SECRET_KEY ||
+  process.env.PAYSTACK_MARKETPLACE_SECRET_KEY ||
+  process.env.PAYSTACK_SECRET_KEY;
+
 const paystackHeaders = () => ({
-  Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+  Authorization: `Bearer ${courseSecretKey()}`,
   "Content-Type": "application/json"
 });
 

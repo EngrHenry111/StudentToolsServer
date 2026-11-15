@@ -1,6 +1,8 @@
 import crypto from "crypto";
 import MarketplaceOrder from "../models/MarketplaceOrder.js";
 import { markOrderCompleted } from "../services/marketplaceOrderService.js";
+import CourseOrder from "../models/CourseOrder.js";
+import { confirmCourseOrder } from "../services/courseAccessService.js";
 
 // Separate from controllers/paystackwebhook.js on purpose (see
 // marketplacePaystackService.js) — same signature-verification rigor,
@@ -28,6 +30,15 @@ export const marketplaceWebhook = async (req, res) => {
     }
 
     const event = req.body;
+
+    // Course purchases are charged with the marketplace key too (see
+    // courseAccessService.courseSecretKey). Re-verified with Paystack's
+    // API and amount-checked inside confirmCourseOrder.
+    if (event.event === "charge.success" && event.data.metadata?.type === "course") {
+      const order = await CourseOrder.findOne({ paystackReference: event.data.reference });
+      if (order) await confirmCourseOrder(order);
+      return res.sendStatus(200);
+    }
 
     if (event.event === "charge.success" && event.data.metadata?.type === "marketplace") {
       const reference = event.data.reference;
