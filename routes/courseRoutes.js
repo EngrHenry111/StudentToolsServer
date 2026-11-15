@@ -6,7 +6,9 @@ import {
   claimApproval,
   purchaseCourse,
   setLessonComplete,
-  getMyCourses
+  getMyCourses,
+  watchHeartbeat,
+  watchRelease
 } from "../controllers/courseController.js";
 import {
   adminListCourses,
@@ -53,6 +55,8 @@ router.get("/admin/:id/orders", adminAuth, adminListOrders);
 
 // ---- Students ----
 router.get("/me/enrolled", authUser, getMyCourses);
+router.post("/watch/heartbeat", authUser, watchHeartbeat);
+router.post("/watch/release", authUser, watchRelease);
 
 // ---- Public (course page renders for logged-out visitors too) ----
 router.get("/", listCourses);

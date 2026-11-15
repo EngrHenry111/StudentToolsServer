@@ -8,6 +8,28 @@ import {
   initializeCoursePayment
 } from "../services/courseAccessService.js";
 import { createSignedEmbedUrl } from "../services/bunnyStreamService.js";
+import { claimWatchSlot, heartbeatWatchSlot, releaseWatchSlot } from "../services/watchSessionService.js";
+
+// POST /api/courses/watch/heartbeat   (authUser)  body: { deviceId }
+export const watchHeartbeat = async (req, res) => {
+  try {
+    const r = await heartbeatWatchSlot({ userId: req.user._id, deviceId: String(req.body?.deviceId || "") });
+    if (!r.ok) return res.status(r.status).json(r.body);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// POST /api/courses/watch/release   (authUser)  body: { deviceId }
+export const watchRelease = async (req, res) => {
+  try {
+    await releaseWatchSlot({ userId: req.user._id, deviceId: String(req.body?.deviceId || "") });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
 const CLIENT_URL = process.env.CLIENT_URL || "https://studenttoolsng.com";
 
@@ -99,7 +121,19 @@ export const playLesson = async (req, res) => {
     }
 
     if (lesson.videoStatus !== "ready" || !lesson.bunnyVideoId) {
-      return res.status(409).json({ message: "This video is still processing. Check back shortly." });
+      return res.status(409).json({ message: "This video is still processing. Check back shortly.", code: "PROCESSING" });
+    }
+
+    // One device at a time for enrolled content (free previews are open).
+    if (!lesson.isFreePreview) {
+      const slot = await claimWatchSlot({
+        userId: req.user._id,
+        deviceId: String(req.query.device || ""),
+        courseId: course._id,
+        lessonId: lesson._id,
+        takeover: req.query.takeover === "1"
+      });
+      if (!slot.ok) return res.status(slot.status).json(slot.body);
     }
 
     res.json(createSignedEmbedUrl(lesson.bunnyVideoId));

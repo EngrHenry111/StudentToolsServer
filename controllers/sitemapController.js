@@ -2,6 +2,8 @@ import { SitemapStream, streamToPromise } from "sitemap";
 import Tutorial from "../models/tutorialModel.js";
 import Publisher from "../models/Publisher.js";
 import Listing from "../models/Listing.js";
+import TechCourse from "../models/TechCourse.js";
+import CourseLesson from "../models/CourseLesson.js";
 
 export const generateSitemap = async (req, res) => {
  try {
@@ -21,6 +23,21 @@ export const generateSitemap = async (req, res) => {
   const listings = await Listing.find({ status: "published" })
    .select("slug publisher updatedAt createdAt")
    .lean();
+
+  // Published video courses. A course page changes when a lesson is
+  // added or edited, so lastmod is the newest of the course and its
+  // published lessons.
+  const courses = await TechCourse.find({ isPublished: true }).select("slug updatedAt createdAt").lean();
+  const lessonDates = await CourseLesson.aggregate([
+   { $match: { course: { $in: courses.map((c) => c._id) }, isPublished: true } },
+   { $group: { _id: "$course", last: { $max: "$updatedAt" } } }
+  ]);
+  const lessonLast = new Map(lessonDates.map((d) => [String(d._id), d.last]));
+  const courseLastmod = (c) => {
+   const a = new Date(c.updatedAt || c.createdAt);
+   const b = lessonLast.get(String(c._id));
+   return b && new Date(b) > a ? new Date(b) : a;
+  };
 
   const smStream = new SitemapStream({
    hostname: "https://studenttoolsng.com"
@@ -200,6 +217,25 @@ export const generateSitemap = async (req, res) => {
     changefreq: "weekly",
     priority: 0.75,
     lastmod: listing.updatedAt || listing.createdAt
+   });
+  });
+
+  // Video courses hub + each published course
+  if (courses.length) {
+   smStream.write({
+    url: "/courses",
+    changefreq: "weekly",
+    priority: 0.8,
+    lastmod: new Date(Math.max(...courses.map((c) => courseLastmod(c).getTime())))
+   });
+  }
+  courses.forEach((course) => {
+   if (!course.slug) return;
+   smStream.write({
+    url: `/courses/${course.slug}`,
+    changefreq: "weekly",
+    priority: 0.8,
+    lastmod: courseLastmod(course)
    });
   });
 
