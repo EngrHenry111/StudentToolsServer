@@ -49,10 +49,10 @@ export const generateSitemap = async (req, res) => {
 
    { url: "/tutorials", changefreq: "daily", priority: 0.9 },
 
-   { url: "/cgpa-calculator", changefreq: "monthly", priority: 0.9 },
-   { url: "/waec-grade-calculator", changefreq: "monthly", priority: 0.9 },
-   { url: "/jamb-score-calculator", changefreq: "monthly", priority: 0.9 },
-   { url: "/gpa-class-calculator", changefreq: "monthly", priority: 0.8 },
+   { url: "/cgpa-calculator", changefreq: "monthly", priority: 0.9, lastmod: "2026-11-16" },
+   { url: "/waec-grade-calculator", changefreq: "monthly", priority: 0.9, lastmod: "2026-11-16" },
+   { url: "/jamb-score-calculator", changefreq: "monthly", priority: 0.9, lastmod: "2026-11-16" },
+   { url: "/gpa-class-calculator", changefreq: "monthly", priority: 0.8, lastmod: "2026-11-16" },
    { url: "/age-calculator", changefreq: "monthly", priority: 0.8, lastmod: "2026-10-26" },
    { url: "/age-tracker", changefreq: "monthly", priority: 0.7, lastmod: "2026-10-26" },
    { url: "/engineering-tools", changefreq: "monthly", priority: 0.8, lastmod: "2026-10-27" },
@@ -67,7 +67,8 @@ export const generateSitemap = async (req, res) => {
    { url: "/engineering-tools/solar-system-calculator", changefreq: "monthly", priority: 0.8, lastmod: "2026-10-27" },
    { url: "/engineering-tools/inverter-size-calculator", changefreq: "monthly", priority: 0.8, lastmod: "2026-10-27" },
    { url: "/engineering-tools/battery-backup-calculator", changefreq: "monthly", priority: 0.8, lastmod: "2026-10-27" },
-   { url: "/cgpa-converter", changefreq: "monthly", priority: 0.8, lastmod: "2026-10-27" },
+   { url: "/cgpa-converter", changefreq: "monthly", priority: 0.8, lastmod: "2026-11-16" },
+   { url: "/noun-cgpa-calculator", changefreq: "monthly", priority: 0.8, lastmod: "2026-11-16" },
    { url: "/aggregate-score-calculator", changefreq: "monthly", priority: 0.9, lastmod: "2026-10-27" },
    { url: "/jamb-cbt-practice", changefreq: "monthly", priority: 0.9, lastmod: "2026-11-04" },
   // Slugs mirror SUBJECTS in the client's src/utils/cbt/index.js.
