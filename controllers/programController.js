@@ -9,7 +9,10 @@ import { generateAccessToken, generateRefreshToken } from "./authController.js";
 import { grantProgramAccess, revokeProgramAccess, sendAcceptedEmail } from "../services/programService.js";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PUBLIC_FIELDS = "title slug sponsorName sponsorLogoUrl tagline description details batch status pausedMessage courses";
+const PUBLIC_FIELDS = "title slug sponsorName sponsorLogoUrl tagline description details eligibleLgas eligibleState batch status pausedMessage courses";
+
+// "Uyo, Itu" → ["Uyo", "Itu"]
+const lgaList = (s) => String(s || "").split(/[,;\n]+/).map((x) => x.trim()).filter(Boolean);
 const VISIBLE = ["open", "paused"];
 
 const str = (v, max = 200) => String(v ?? "").trim().slice(0, max);
@@ -50,6 +53,9 @@ export const getProgram = async (req, res) => {
         .select("status batch createdAt");
       if (a) myApplication = a;
     }
+    // Personal (the visitor's own status) and changes when the admin acts:
+    // never let a browser reuse an old copy on reload.
+    res.set("Cache-Control", "no-store");
     res.json({ program: await shapeProgram(p), myApplication });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -86,6 +92,25 @@ export const applyToProgram = async (req, res) => {
     const phone = str(body.phone, 30);
     if (fullName.length < 3) return res.status(400).json({ message: "Please enter your full name" });
     if (!/^\+?[\d\s()-]{7,20}$/.test(phone)) return res.status(400).json({ message: "Please enter a valid phone number" });
+
+    // Indigenes of the sponsor's Local Government Area(s) only.
+    const lgas = lgaList(program.eligibleLgas);
+    let lgaOfOrigin = str(body.lgaOfOrigin, 80);
+    const hometown = str(body.hometown, 120);
+    if (lgas.length) {
+      const match = lgas.find((l) => l.toLowerCase() === lgaOfOrigin.toLowerCase());
+      if (!match) {
+        return res.status(403).json({
+          message: `This training is only for indigenes of ${lgas.join(" / ")} Local Government Area.`,
+          code: "NOT_ELIGIBLE"
+        });
+      }
+      lgaOfOrigin = match;
+      if (hometown.length < 2) return res.status(400).json({ message: "Please enter your ward, village or community" });
+      if (body.lgaDeclaration !== true) {
+        return res.status(400).json({ message: "Please tick the box to confirm you are an indigene of the Local Government Area" });
+      }
+    }
 
     let user = req.user;
     let tokens = null;
@@ -131,6 +156,9 @@ export const applyToProgram = async (req, res) => {
       gender: str(body.gender, 20),
       ageRange: str(body.ageRange, 20),
       location: str(body.location, 80),
+      lgaOfOrigin,
+      hometown,
+      lgaDeclaredAt: lgas.length ? new Date() : null,
       educationLevel: str(body.educationLevel, 60),
       occupation: str(body.occupation, 80),
       hasLaptop: str(body.hasLaptop, 10),
@@ -152,7 +180,7 @@ export const applyToProgram = async (req, res) => {
 
 // ================================================================ admin
 
-const ADMIN_EDITABLE = ["title", "sponsorName", "sponsorLogoUrl", "tagline", "description", "details", "batch", "pausedMessage"];
+const ADMIN_EDITABLE = ["title", "sponsorName", "sponsorLogoUrl", "tagline", "description", "details", "eligibleLgas", "eligibleState", "batch", "pausedMessage"];
 
 export const adminListPrograms = async (req, res) => {
   try {
@@ -279,7 +307,7 @@ export const adminDecideApplications = async (req, res) => {
 
     const apps = await ProgramApplication.find({ _id: { $in: ids }, program: program._id });
     let changed = 0;
-    let emailed = 0;
+    const toEmail = [];
     for (const a of apps) {
       if (a.status === to) continue;
       if (to === "accepted") {
@@ -293,18 +321,20 @@ export const adminDecideApplications = async (req, res) => {
       await a.save();
       changed++;
 
-      if (to === "accepted" && sendEmail) {
-        try {
-          await sendAcceptedEmail(a, program);
-          a.acceptedEmailAt = new Date();
-          await a.save();
-          emailed++;
-        } catch (e) {
-          console.error("PROGRAM ACCEPT EMAIL FAILED:", e.message);
-        }
+      if (to === "accepted" && sendEmail) toEmail.push(a);
+    }
+
+    // Access is already on; emails go out after the response so accepting
+    // a whole batch at once never waits on the mail server.
+    res.json({ changed, emailing: toEmail.length });
+    for (const a of toEmail) {
+      try {
+        await sendAcceptedEmail(a, program);
+        await ProgramApplication.updateOne({ _id: a._id }, { acceptedEmailAt: new Date() });
+      } catch (e) {
+        console.error("PROGRAM ACCEPT EMAIL FAILED:", a.email, e.message);
       }
     }
-    res.json({ changed, emailed });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

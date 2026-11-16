@@ -22,6 +22,11 @@ const programSchema = new mongoose.Schema({
   description: { type: String, default: "" }, // what the training is about
   details: { type: String, default: "" },     // dates, venue, requirements (one per line)
 
+  // Who may register: indigenes of these Local Government Areas (comma-
+  // separated, e.g. "Ikot Ekpene" or "Uyo, Itu"). Empty = open to everyone.
+  eligibleLgas: { type: String, default: "", trim: true },
+  eligibleState: { type: String, default: "", trim: true },
+
   batch: { type: String, default: "Batch 1", trim: true },
   status: { type: String, enum: ["draft", "open", "paused", "closed"], default: "draft" },
   pausedMessage: { type: String, default: "" },
