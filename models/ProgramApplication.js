@@ -27,6 +27,7 @@ const programApplicationSchema = new mongoose.Schema({
   status: { type: String, enum: ["pending", "accepted", "rejected"], default: "pending" },
   decidedAt: { type: Date, default: null },
   acceptedEmailAt: { type: Date, default: null },
+  emailError: { type: String, default: "" },     // last welcome-email failure
   accessNote: { type: String, default: "" } // note on the CourseApprovals it created
 }, { timestamps: true });
 

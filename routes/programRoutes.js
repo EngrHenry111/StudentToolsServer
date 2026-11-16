@@ -9,7 +9,8 @@ import {
   adminUpdateProgram,
   adminListApplications,
   adminDecideApplications,
-  adminResendAcceptedEmail
+  adminResendAcceptedEmail,
+  adminTestEmail
 } from "../controllers/programController.js";
 import optionalAuthUser from "../middleware/optionalAuthUser.js";
 import adminAuth from "../middleware/adminAuth.js";
@@ -18,6 +19,7 @@ const router = express.Router();
 
 // ---- Admin (declared first so "/admin/..." never matches "/:slug") ----
 router.get("/admin/all", adminAuth, adminListPrograms);
+router.post("/admin/email-test", adminAuth, adminTestEmail);
 router.post("/admin", adminAuth, adminCreateProgram);
 router.get("/admin/:id", adminAuth, adminGetProgram);
 router.put("/admin/:id", adminAuth, adminUpdateProgram);

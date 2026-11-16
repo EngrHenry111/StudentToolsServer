@@ -7,6 +7,7 @@ import TechCourse from "../models/TechCourse.js";
 import User from "../models/User.js";
 import { generateAccessToken, generateRefreshToken } from "./authController.js";
 import { grantProgramAccess, revokeProgramAccess, sendAcceptedEmail } from "../services/programService.js";
+import transporter from "../config/mailer.js";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PUBLIC_FIELDS = "title slug sponsorName sponsorLogoUrl tagline description details eligibleLgas eligibleState batch status pausedMessage courses";
@@ -329,10 +330,11 @@ export const adminDecideApplications = async (req, res) => {
     res.json({ changed, emailing: toEmail.length });
     for (const a of toEmail) {
       try {
-        await sendAcceptedEmail(a, program);
-        await ProgramApplication.updateOne({ _id: a._id }, { acceptedEmailAt: new Date() });
+        await withTimeout(sendAcceptedEmail(a, program));
+        await ProgramApplication.updateOne({ _id: a._id }, { acceptedEmailAt: new Date(), emailError: "" });
       } catch (e) {
         console.error("PROGRAM ACCEPT EMAIL FAILED:", a.email, e.message);
+        await ProgramApplication.updateOne({ _id: a._id }, { emailError: e.message.slice(0, 300) });
       }
     }
   } catch (err) {
@@ -346,11 +348,54 @@ export const adminResendAcceptedEmail = async (req, res) => {
     const a = await ProgramApplication.findOne({ _id: req.params.appId, program: req.params.id });
     if (!program || !a) return res.status(404).json({ message: "Not found" });
     if (a.status !== "accepted") return res.status(400).json({ message: "Only accepted students get this email" });
-    await sendAcceptedEmail(a, program);
+    try {
+      await withTimeout(sendAcceptedEmail(a, program));
+    } catch (e) {
+      a.emailError = e.message.slice(0, 300);
+      await a.save();
+      return res.status(502).json({ message: `Email failed: ${e.message}` });
+    }
     a.acceptedEmailAt = new Date();
+    a.emailError = "";
     await a.save();
     res.json({ ok: true });
   } catch (err) {
-    res.status(500).json({ message: `Email failed: ${err.message}` });
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// A blocked mail port makes SMTP hang for minutes; give up sooner.
+const withTimeout = (p, ms = 25000) =>
+  Promise.race([
+    p,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(
+      `No answer from the mail server after ${ms / 1000}s (the host may be blocking outgoing email)`
+    )), ms))
+  ]);
+
+// Admin "Send test email": shows which mail service is set up and the
+// exact error, so a delivery problem can be fixed instead of guessed at.
+export const adminTestEmail = async (req, res) => {
+  const to = str(req.body?.to, 120).toLowerCase();
+  if (!EMAIL_RE.test(to)) return res.status(400).json({ message: "Enter a valid email address" });
+
+  const provider = process.env.RESEND_API_KEY ? "resend" : "gmail";
+  const info = {
+    provider,
+    from: provider === "resend"
+      ? (process.env.EMAIL_FROM || "StudentToolsNG <onboarding@resend.dev> (default: only delivers to the Resend account owner)")
+      : (process.env.EMAIL_USER || "(EMAIL_USER not set)"),
+    configured: provider === "resend" ? true : Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS)
+  };
+  try {
+    await withTimeout(transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to,
+      subject: "StudentToolsNG test email",
+      html: `<p>This is a test from the StudentToolsNG admin. If you can read this, student emails are working. ✅</p>`
+    }));
+    res.json({ ok: true, ...info });
+  } catch (e) {
+    res.json({ ok: false, error: e.message, ...info });
   }
 };
