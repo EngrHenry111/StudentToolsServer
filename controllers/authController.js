@@ -34,7 +34,7 @@ const awardXP = async (userId, username, amount) => {
 // 🔐 TOKEN FUNCTIONS (PUT HERE)
 // ================================
 
-const generateAccessToken = (user) => {
+export const generateAccessToken = (user) => {
   return jwt.sign(
     { id: user._id, username: user.username },
     process.env.JWT_SECRET,
@@ -42,7 +42,7 @@ const generateAccessToken = (user) => {
   );
 };
 
-const generateRefreshToken = (user) => {
+export const generateRefreshToken = (user) => {
   return jwt.sign(
     { id: user._id },
     process.env.JWT_REFRESH_SECRET,
