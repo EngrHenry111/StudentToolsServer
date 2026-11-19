@@ -14,6 +14,7 @@ const programApplicationSchema = new mongoose.Schema({
   gender: { type: String, default: "" },
   ageRange: { type: String, default: "" },
   location: { type: String, default: "" },        // state / city
+  stateOfOrigin: { type: String, default: "" },
   lgaOfOrigin: { type: String, default: "" },
   hometown: { type: String, default: "" },        // ward / village / community
   lgaDeclaredAt: { type: Date, default: null },   // ticked "I am an indigene of …"

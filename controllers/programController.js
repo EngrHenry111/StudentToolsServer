@@ -8,6 +8,7 @@ import User from "../models/User.js";
 import { generateAccessToken, generateRefreshToken } from "./authController.js";
 import { grantProgramAccess, revokeProgramAccess, sendAcceptedEmail } from "../services/programService.js";
 import transporter from "../config/mailer.js";
+import { uploadBufferToCloudinary } from "../services/cloudinaryUpload.js";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PUBLIC_FIELDS = "title slug sponsorName sponsorLogoUrl tagline description details eligibleLgas eligibleState batch status pausedMessage courses";
@@ -111,7 +112,13 @@ export const applyToProgram = async (req, res) => {
       if (body.lgaDeclaration !== true) {
         return res.status(400).json({ message: "Please tick the box to confirm you are an indigene of the Local Government Area" });
       }
+    } else {
+      // No automatic rule: still collect origin so the admin can decide.
+      if (str(body.stateOfOrigin, 40).length < 2) return res.status(400).json({ message: "Please choose your state of origin" });
+      if (lgaOfOrigin.length < 2) return res.status(400).json({ message: "Please enter your Local Government Area of origin" });
+      if (hometown.length < 2) return res.status(400).json({ message: "Please enter your ward, village or community" });
     }
+    const stateOfOrigin = lgas.length ? program.eligibleState || "" : str(body.stateOfOrigin, 40);
 
     let user = req.user;
     let tokens = null;
@@ -157,6 +164,7 @@ export const applyToProgram = async (req, res) => {
       gender: str(body.gender, 20),
       ageRange: str(body.ageRange, 20),
       location: str(body.location, 80),
+      stateOfOrigin,
       lgaOfOrigin,
       hometown,
       lgaDeclaredAt: lgas.length ? new Date() : null,
@@ -397,5 +405,17 @@ export const adminTestEmail = async (req, res) => {
     res.json({ ok: true, ...info });
   } catch (e) {
     res.json({ ok: false, error: e.message, ...info });
+  }
+};
+
+// Sponsor logo upload → Cloudinary URL. The admin form puts the URL into
+// sponsorLogoUrl; it's stored when the settings are saved.
+export const adminUploadLogo = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: "Choose a PNG, JPG, WebP, GIF or SVG image." });
+    const up = await uploadBufferToCloudinary(req.file.buffer, "program-logos");
+    res.json({ url: up.secure_url });
+  } catch (err) {
+    res.status(500).json({ message: err.message || "Upload failed" });
   }
 };
