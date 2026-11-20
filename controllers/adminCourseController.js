@@ -308,3 +308,42 @@ export const adminListOrders = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+// PUT /api/courses/admin/:id/live   body: { active?, url?, note? }
+// Start (active: true) needs a link; ending keeps the link for reference.
+export const adminSetLiveClass = async (req, res) => {
+  try {
+    const course = await TechCourse.findById(req.params.id);
+    if (!course) return res.status(404).json({ message: "Course not found" });
+    const live = course.live || {};
+    const { active, url, note } = req.body || {};
+
+    if (url !== undefined) {
+      const u = String(url).trim();
+      if (u) {
+        let parsed;
+        try { parsed = new URL(u); } catch { parsed = null; }
+        if (!parsed || parsed.protocol !== "https:") {
+          return res.status(400).json({ message: "Paste the full meeting link, starting with https://" });
+        }
+      }
+      live.url = u.slice(0, 500);
+    }
+    if (note !== undefined) live.note = String(note).trim().slice(0, 200);
+
+    if (active === true) {
+      if (!live.url) return res.status(400).json({ message: "Paste the meeting link before starting the live class" });
+      if (!live.active) live.startedAt = new Date();
+      live.active = true;
+    } else if (active === false) {
+      if (live.active) live.endedAt = new Date();
+      live.active = false;
+    }
+
+    course.live = live;
+    await course.save();
+    res.json(withNaira(course));
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

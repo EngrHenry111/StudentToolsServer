@@ -53,7 +53,8 @@ const publicCourse = (c) => ({
   description: c.description,
   coverImageUrl: c.coverImageUrl,
   instructor: c.instructor,
-  price: c.price / 100 // naira
+  price: c.price / 100, // naira
+  liveActive: Boolean(c.live?.active) // never the link itself
 });
 
 const findPublishedCourse = (slug) => TechCourse.findOne({ slug: String(slug).toLowerCase(), isPublished: true });
@@ -263,6 +264,26 @@ export const getMyCourses = async (req, res) => {
       }
     }
     res.json(mine);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// GET /api/courses/:slug/live   (authUser)
+// The live-class link, only for students with access and only while the
+// admin has the class switched on. Polled by the course page.
+export const getLiveClass = async (req, res) => {
+  try {
+    const course = await findPublishedCourse(req.params.slug);
+    if (!course) return res.status(404).json({ message: "Course not found" });
+    const access = await getCourseAccess(req.user, course);
+    if (!access.hasAccess) {
+      return res.status(403).json({ message: "The live class is only for registered students of this course.", needsClaim: access.needsClaim });
+    }
+    res.set("Cache-Control", "no-store");
+    const live = course.live || {};
+    if (!live.active || !live.url) return res.json({ active: false });
+    res.json({ active: true, url: live.url, note: live.note || "", startedAt: live.startedAt });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

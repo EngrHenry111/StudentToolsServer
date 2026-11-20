@@ -8,7 +8,8 @@ import {
   setLessonComplete,
   getMyCourses,
   watchHeartbeat,
-  watchRelease
+  watchRelease,
+  getLiveClass
 } from "../controllers/courseController.js";
 import {
   adminListCourses,
@@ -25,7 +26,8 @@ import {
   adminAddApprovals,
   adminResendApprovalEmail,
   adminRemoveApproval,
-  adminListOrders
+  adminListOrders,
+  adminSetLiveClass
 } from "../controllers/adminCourseController.js";
 import authUser from "../middleware/authUser.js";
 import optionalAuthUser from "../middleware/optionalAuthUser.js";
@@ -38,6 +40,7 @@ router.get("/admin/all", adminAuth, adminListCourses);
 router.post("/admin", adminAuth, adminCreateCourse);
 router.get("/admin/:id", adminAuth, adminGetCourse);
 router.put("/admin/:id", adminAuth, adminUpdateCourse);
+router.put("/admin/:id/live", adminAuth, adminSetLiveClass);
 
 router.get("/admin/:id/lessons", adminAuth, adminListLessons);
 router.post("/admin/:id/lessons", adminAuth, adminCreateLesson);
@@ -63,6 +66,7 @@ router.get("/", listCourses);
 router.get("/:slug", optionalAuthUser, getCourse);
 router.get("/:slug/lessons/:lessonId/play", optionalAuthUser, playLesson);
 
+router.get("/:slug/live", authUser, getLiveClass);
 router.post("/:slug/claim", authUser, claimApproval);
 router.post("/:slug/purchase", authUser, purchaseCourse);
 router.post("/:slug/lessons/:lessonId/complete", authUser, setLessonComplete);
