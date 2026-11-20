@@ -29,7 +29,14 @@ const programApplicationSchema = new mongoose.Schema({
   decidedAt: { type: Date, default: null },
   acceptedEmailAt: { type: Date, default: null },
   emailError: { type: String, default: "" },     // last welcome-email failure
-  accessNote: { type: String, default: "" } // note on the CourseApprovals it created
+  accessNote: { type: String, default: "" }, // note on the CourseApprovals it created
+
+  // Paid forms: fee owed (kobo, fixed when accepted), the latest Paystack
+  // reference, and when it was paid. paidAt set = paid, access can open.
+  feeKobo: { type: Number, default: 0 },
+  payRef: { type: String, default: "" },
+  paidAt: { type: Date, default: null },
+  amountPaid: { type: Number, default: 0 }
 }, { timestamps: true });
 
 programApplicationSchema.index({ program: 1, batch: 1, user: 1 }, { unique: true });

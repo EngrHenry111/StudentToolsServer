@@ -6,12 +6,34 @@ import ProgramApplication from "../models/ProgramApplication.js";
 import TechCourse from "../models/TechCourse.js";
 import User from "../models/User.js";
 import { generateAccessToken, generateRefreshToken } from "./authController.js";
-import { grantProgramAccess, revokeProgramAccess, sendAcceptedEmail } from "../services/programService.js";
+import { grantProgramAccess, revokeProgramAccess, sendAcceptedEmail, awaitingPayment, confirmProgramPayment } from "../services/programService.js";
+import { initializeCoursePayment } from "../services/courseAccessService.js";
 import transporter from "../config/mailer.js";
 import { uploadBufferToCloudinary } from "../services/cloudinaryUpload.js";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PUBLIC_FIELDS = "title slug sponsorName sponsorLogoUrl tagline description details eligibleLgas eligibleState batch status pausedMessage courses";
+const PUBLIC_FIELDS = "title slug sponsorName sponsorLogoUrl tagline description details eligibleLgas eligibleState batch status pausedMessage courses fee";
+const CLIENT_URL = process.env.CLIENT_URL || "https://studenttoolsng.com";
+
+// Training fee from the admin form, in naira -> kobo. undefined = unchanged.
+const feeFromBody = (body) => {
+  if (body?.feeNaira === undefined) return undefined;
+  if (body.feeNaira === "" || body.feeNaira === null) return 0;
+  const n = Number(body.feeNaira);
+  if (!Number.isFinite(n) || n < 0) throw Object.assign(new Error("Training fee must be 0 or more"), { status: 400 });
+  if (n > 0 && n < 100) throw Object.assign(new Error("Training fee must be at least ₦100 (or 0 for free)"), { status: 400 });
+  return Math.round(n * 100);
+};
+
+// What a student sees about their own registration.
+const myStatus = (a) => ({
+  status: a.status,
+  batch: a.batch,
+  createdAt: a.createdAt,
+  fee: a.feeKobo || 0,
+  paid: Boolean(a.paidAt),
+  awaitingPayment: awaitingPayment(a)
+});
 
 // "Uyo, Itu" → ["Uyo", "Itu"]
 const lgaList = (s) => String(s || "").split(/[,;\n]+/).map((x) => x.trim()).filter(Boolean);
@@ -29,15 +51,19 @@ const shapeProgram = async (p) => {
 
 // ================================================================ public
 
-// The programme shown first on the home page and menu: the newest open one,
-// otherwise the newest paused one (between batches). null when none.
+// Every programme shown on the home page and menu: open ones first (newest
+// first), then paused ones (between batches). `program` = the first, kept
+// for older clients. Empty when none.
 export const getActiveProgram = async (req, res) => {
   try {
-    const p =
-      (await Program.findOne({ status: "open" }).sort({ updatedAt: -1 }).select("title slug sponsorName status batch")) ||
-      (await Program.findOne({ status: "paused" }).sort({ updatedAt: -1 }).select("title slug sponsorName status batch"));
+    const fields = "title slug sponsorName status batch fee eligibleLgas eligibleState";
+    const [open, paused] = await Promise.all([
+      Program.find({ status: "open" }).sort({ updatedAt: -1 }).select(fields).lean(),
+      Program.find({ status: "paused" }).sort({ updatedAt: -1 }).select(fields).lean()
+    ]);
+    const programs = [...open, ...paused];
     res.set("Cache-Control", "public, max-age=60");
-    res.json({ program: p || null });
+    res.json({ program: programs[0] || null, programs });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -51,9 +77,10 @@ export const getProgram = async (req, res) => {
     let myApplication = null;
     if (req.user) {
       const a = await ProgramApplication.findOne({ program: p._id, user: req.user._id })
-        .sort({ createdAt: -1 })
-        .select("status batch createdAt");
-      if (a) myApplication = a;
+        .sort({ createdAt: -1 });
+      // Back from Paystack (or the webhook was missed): check the payment.
+      if (a && awaitingPayment(a) && a.payRef) await confirmProgramPayment(a, a.payRef);
+      if (a) myApplication = myStatus(a);
     }
     // Personal (the visitor's own status) and changes when the admin acts:
     // never let a browser reuse an old copy on reload.
@@ -222,12 +249,14 @@ export const adminCreateProgram = async (req, res) => {
     if (await Program.exists({ slug })) return res.status(400).json({ message: `A programme with the link "/programs/${slug}" already exists` });
 
     const data = { title, slug };
+    const fee = feeFromBody(req.body);
+    if (fee !== undefined) data.fee = fee;
     for (const k of ADMIN_EDITABLE) if (k !== "title" && req.body[k] !== undefined) data[k] = str(req.body[k], 4000);
     if (Array.isArray(req.body.courses)) data.courses = req.body.courses;
     const p = await Program.create(data);
     res.status(201).json(p);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(err.status || 500).json({ message: err.message });
   }
 };
 
@@ -247,6 +276,9 @@ export const adminUpdateProgram = async (req, res) => {
     if (!p) return res.status(404).json({ message: "Programme not found" });
 
     for (const k of ADMIN_EDITABLE) if (req.body[k] !== undefined) p[k] = str(req.body[k], 4000);
+    const fee = feeFromBody(req.body);
+    const feeChanged = fee !== undefined && fee !== p.fee;
+    if (fee !== undefined) p.fee = fee;
     if (!p.title) return res.status(400).json({ message: "Title is required" });
     if (!p.batch) p.batch = "Batch 1";
 
@@ -271,18 +303,31 @@ export const adminUpdateProgram = async (req, res) => {
     }
     await p.save();
 
-    // A course linked after people were accepted: give it to them too.
+    // Fee changed: accepted-but-unpaid students now owe the new amount, and
+    // a fee set back to 0 opens their access straight away.
+    if (feeChanged) {
+      const unpaid = await ProgramApplication.find({ program: p._id, status: "accepted", paidAt: null, feeKobo: { $gt: 0 } });
+      for (const a of unpaid) {
+        a.feeKobo = p.fee;
+        if (!p.fee) a.accessNote = await grantProgramAccess(a, p);
+        await a.save();
+      }
+    }
+
+    // A course linked after people were accepted: give it to them too
+    // (not to anyone still owing the fee; they get it when they pay).
     if (coursesAdded.length) {
       const accepted = await ProgramApplication.find({ program: p._id, status: "accepted" });
       const only = { ...p.toObject(), courses: coursesAdded };
       for (const a of accepted) {
+        if (awaitingPayment(a)) continue;
         const note = await grantProgramAccess(a, only);
         if (!a.accessNote) { a.accessNote = note; await a.save(); }
       }
     }
     res.json(p);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(err.status || 500).json({ message: err.message });
   }
 };
 
@@ -320,7 +365,10 @@ export const adminDecideApplications = async (req, res) => {
     for (const a of apps) {
       if (a.status === to) continue;
       if (to === "accepted") {
-        a.accessNote = await grantProgramAccess(a, program);
+        // Paid form: fix the fee now; courses open only once it's paid.
+        if (!a.paidAt) a.feeKobo = program.fee || 0;
+        a.status = to;
+        a.accessNote = awaitingPayment(a) ? "" : await grantProgramAccess(a, program);
       } else if (a.status === "accepted") {
         await revokeProgramAccess(a, program);
         a.accessNote = "";
@@ -346,6 +394,8 @@ export const adminDecideApplications = async (req, res) => {
       }
     }
   } catch (err) {
+    // The email loop runs after the reply was sent: just log there.
+    if (res.headersSent) return console.error("PROGRAM DECIDE (after reply):", err.message);
     res.status(500).json({ message: err.message });
   }
 };
@@ -417,5 +467,33 @@ export const adminUploadLogo = async (req, res) => {
     res.json({ url: up.secure_url });
   } catch (err) {
     res.status(500).json({ message: err.message || "Upload failed" });
+  }
+};
+
+// POST /programs/:slug/pay  (authUser): an accepted student pays the fee.
+// The amount comes from their registration (fixed at acceptance), never
+// from the client. Access opens in confirmProgramPayment.
+export const payProgramFee = async (req, res) => {
+  try {
+    const program = await Program.findOne({ slug: req.params.slug });
+    if (!program) return res.status(404).json({ message: "Programme not found" });
+    const a = await ProgramApplication.findOne({ program: program._id, user: req.user._id, status: "accepted" }).sort({ createdAt: -1 });
+    if (!a) return res.status(400).json({ message: "Only accepted students can pay for this training." });
+    if (a.paidAt || !(a.feeKobo > 0)) return res.status(400).json({ message: "Nothing to pay: your access is already open." });
+
+    const reference = `prg_${a._id}_${Date.now()}`;
+    const tx = await initializeCoursePayment({
+      email: req.user.email,
+      amountKobo: a.feeKobo,
+      reference,
+      callbackUrl: `${CLIENT_URL}/programs/${program.slug}?paid=1`,
+      metadata: { type: "program", applicationId: String(a._id), programId: String(program._id), userId: String(req.user._id) }
+    });
+    a.payRef = reference;
+    await a.save();
+    res.json({ authorization_url: tx.authorization_url });
+  } catch (err) {
+    console.error("PROGRAM PAY ERROR:", err.response?.data || err.message);
+    res.status(500).json({ message: err.response?.data?.message || err.message });
   }
 };

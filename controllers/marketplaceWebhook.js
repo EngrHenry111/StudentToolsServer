@@ -3,6 +3,8 @@ import MarketplaceOrder from "../models/MarketplaceOrder.js";
 import { markOrderCompleted } from "../services/marketplaceOrderService.js";
 import CourseOrder from "../models/CourseOrder.js";
 import { confirmCourseOrder } from "../services/courseAccessService.js";
+import ProgramApplication from "../models/ProgramApplication.js";
+import { confirmProgramPayment } from "../services/programService.js";
 
 // Separate from controllers/paystackwebhook.js on purpose (see
 // marketplacePaystackService.js) — same signature-verification rigor,
@@ -34,6 +36,14 @@ export const marketplaceWebhook = async (req, res) => {
     // Course purchases are charged with the marketplace key too (see
     // courseAccessService.courseSecretKey). Re-verified with Paystack's
     // API and amount-checked inside confirmCourseOrder.
+    // Training-fee payments for paid registration forms. Re-verified with
+    // Paystack inside confirmProgramPayment.
+    if (event.event === "charge.success" && event.data.metadata?.type === "program") {
+      const app = await ProgramApplication.findById(event.data.metadata.applicationId).catch(() => null);
+      if (app) await confirmProgramPayment(app, event.data.reference);
+      return res.sendStatus(200);
+    }
+
     if (event.event === "charge.success" && event.data.metadata?.type === "course") {
       const order = await CourseOrder.findOne({ paystackReference: event.data.reference });
       if (order) await confirmCourseOrder(order);

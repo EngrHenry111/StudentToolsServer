@@ -75,7 +75,7 @@ export const initializeCoursePayment = async ({ email, amountKobo, reference, ca
   return res.data.data; // { authorization_url, reference }
 };
 
-const verifyTransaction = async (reference) => {
+export const verifyTransaction = async (reference) => {
   const res = await axios.get(
     `${PAYSTACK_URL}/transaction/verify/${encodeURIComponent(reference)}`,
     { headers: paystackHeaders() }

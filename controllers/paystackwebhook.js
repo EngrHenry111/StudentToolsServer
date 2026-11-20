@@ -4,6 +4,8 @@ import MarketplaceOrder from "../models/MarketplaceOrder.js";
 import { confirmOrderWithPaystack } from "../services/marketplaceOrderService.js";
 import CourseOrder from "../models/CourseOrder.js";
 import { confirmCourseOrder } from "../services/courseAccessService.js";
+import ProgramApplication from "../models/ProgramApplication.js";
+import { confirmProgramPayment } from "../services/programService.js";
 
 export const paystackWebhook = async (
   req,
@@ -45,6 +47,14 @@ export const paystackWebhook = async (
     // Video-course purchases (Youth Tech Hub etc.) share this Paystack
     // account. Re-verified with Paystack's API + amount-checked inside
     // confirmCourseOrder — the event body alone is never trusted.
+    // Training-fee payments for paid registration forms. Re-verified with
+    // Paystack inside confirmProgramPayment.
+    if (event.event === "charge.success" && event.data?.metadata?.type === "program") {
+      const app = await ProgramApplication.findById(event.data.metadata.applicationId).catch(() => null);
+      if (app) await confirmProgramPayment(app, event.data.reference);
+      return res.sendStatus(200);
+    }
+
     if (event.event === "charge.success" && event.data?.metadata?.type === "course") {
       const order = await CourseOrder.findOne({ paystackReference: event.data.reference });
       if (order) await confirmCourseOrder(order);

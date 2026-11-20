@@ -11,8 +11,10 @@ import {
   adminDecideApplications,
   adminResendAcceptedEmail,
   adminTestEmail,
-  adminUploadLogo
+  adminUploadLogo,
+  payProgramFee
 } from "../controllers/programController.js";
+import authUser from "../middleware/authUser.js";
 import multer from "multer";
 import optionalAuthUser from "../middleware/optionalAuthUser.js";
 import adminAuth from "../middleware/adminAuth.js";
@@ -47,5 +49,6 @@ router.post("/admin/:id/applications/:appId/resend", adminAuth, adminResendAccep
 router.get("/active", getActiveProgram);
 router.get("/:slug", optionalAuthUser, getProgram);
 router.post("/:slug/apply", optionalAuthUser, applyToProgram);
+router.post("/:slug/pay", authUser, payProgramFee);
 
 export default router;

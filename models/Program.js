@@ -31,7 +31,12 @@ const programSchema = new mongoose.Schema({
   status: { type: String, enum: ["draft", "open", "paused", "closed"], default: "draft" },
   pausedMessage: { type: String, default: "" },
 
-  // Accepted applicants get free access to these video courses.
+  // Training fee in KOBO (N1 = 100). 0 = free. When set, accepting a
+  // registration does NOT open the courses: the student pays this on the
+  // form page first (Paystack), then access opens automatically.
+  fee: { type: Number, default: 0, min: 0 },
+
+  // Accepted applicants get access to these video courses.
   courses: [{ type: mongoose.Schema.Types.ObjectId, ref: "TechCourse" }]
 }, { timestamps: true });
 
